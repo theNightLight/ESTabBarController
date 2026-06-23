@@ -27,17 +27,37 @@
 8| 支持默认通知样式 | 如果直接使用ESTabBarController进行初始化，你会得到与UITabBarController完全相同的仿系统通知样式 </p> UITabBarController样式: </p> ![enter image description here](Resources/SystemNotificationStyle.png) </p> ESTabBarController仿系统样式: </p> ![enter image description here](Resources/CustomNotificationStyle.png)
 9| 支持自定义通知样式 | 使用ESTabBarController可以实现：</p> 1. 自定义提醒动画 </p> ![enter image description here](Resources/CustomNofticationGif.gif) </p> ![enter image description here](Resources/CustomNofticationGif2.gif) </p> 2. 自定义提醒样式 </p> ![enter image description here](Resources/CustomNofticationGif3.gif) </p> 3. 等等...... </p>
 10| 支持Lottie | 通过自定义ContentView，能够添加Lottie的LAAnimationView到Item </p> ![enter image description here](Resources/LottieGif.gif)
+11| 支持 iOS 26 Liquid Glass 适配 | iOS 26 系统 TabBar 引入 Liquid Glass 效果。ESTabBarController 通过 `designType` 与 `usesSystemGlassEffect` 提供三种布局策略（需 iOS 26+）：</p> 1. **系统玻璃模式**（默认）：`designType = .automatic`，`usesSystemGlassEffect = true`。自定义 item 嵌入系统 `_UITabBarPlatterView` 双层结构，保留系统玻璃合成与选中动画。</p> ![系统玻璃模式](Resources/systemAndGlass.gif) </p> 2. **自定义容器模式**：`designType = .automatic`，`usesSystemGlassEffect = false`。隐藏系统按钮，使用 `ESTabBarItemContainer` 全宽均分布局，适合完全自定义外观。</p> ![无系统玻璃模式](Resources/systemNoGlass.gif) </p> 3. **强制旧版布局**：`designType = .old`。全版本走传统布局；iOS 26+ 隐藏 platter，Tab 项全宽均分，与 iOS 18 及以下表现一致。</p> ![强制旧版布局](Resources/mandatoryOldDesign.gif)
 
 ## 支持环境
 
 * Xcode 8 or later
-* iOS 8.0 or later
+* iOS 8.0 or later（Liquid Glass 适配需 iOS 26.0+）
 * ARC
 * Swift 5 or later
 
 ## Demo
 
-下载后运行ESTabBarControllerExample工程，你可以看到一些使用ESTabBarController实现的自定义TabBar的更多例子。
+下载后运行 ESTabBarControllerExample 工程，你可以看到一些使用 ESTabBarController 实现的自定义 TabBar 的更多例子。Basic 分组中可体验上述三种 iOS 26 布局模式。
+
+### iOS 26 Liquid Glass 配置
+
+```swift
+let tabBarController = ESTabBarController()
+if let tabBar = tabBarController.tabBar as? ESTabBar {
+    // 布局风格：.automatic（默认，随系统版本适配）或 .old（强制旧版）
+    tabBar.designType = .automatic
+
+    // 仅 designType == .automatic 且 iOS 26+ 有效
+    // true：系统玻璃双层嵌入（默认）；false：自定义容器全宽布局
+    tabBar.usesSystemGlassEffect = true
+}
+```
+
+| 属性 | 默认值 | 说明 |
+|------|--------|------|
+| `designType` | `.automatic` | `.old` 时忽略 `usesSystemGlassEffect`，全版本走传统布局 |
+| `usesSystemGlassEffect` | `true` | 仅 `.automatic` + iOS 26+ 生效 |
 
 ## 如何安装
 

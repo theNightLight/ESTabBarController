@@ -32,6 +32,9 @@ enum ExampleProvider {
     
     static func customStyle() -> ESTabBarController {
         let tabBarController = ESTabBarController()
+        if let tabBar = tabBarController.tabBar as? ESTabBar {
+            tabBar.usesSystemGlassEffect = false
+        }
         let v1 = ExampleViewController()
         let v2 = ExampleViewController()
         let v3 = ExampleViewController()

@@ -30,17 +30,37 @@ In real-world development, we may encounter the situation of customizing the UIT
 8| Default notification style |  You can get a system-like notification style by initializing the TabBar with ESTabBarController directly. </p> UITabBarController notification style: </p> ![enter image description here](Resources/SystemNotificationStyle.png) </p> ESTabBarController system-like notification style: </p> ![enter image description here](Resources/CustomNotificationStyle.png)
 9| Customizable notification style | With ESTabBarController, you can：</p> 1. Customize notification animation: </p> ![enter image description here](Resources/CustomNofticationGif.gif) </p> ![enter image description here](Resources/CustomNofticationGif2.gif) </p> 2. Customize prompt style: </p> ![enter image description here](Resources/CustomNofticationGif3.gif) </p> 3. And much more ... </p>
 10| Lottie | Through customizing ContentView, you are able to add Lottie's LAAnimationView to Item(s) </p> ![enter image description here](Resources/LottieGif.gif)
+11| iOS 26 Liquid Glass | iOS 26 introduces Liquid Glass on the system TabBar. ESTabBarController adapts via `designType` and `usesSystemGlassEffect` (iOS 26+):</p> 1. **System glass** (default): `designType = .automatic`, `usesSystemGlassEffect = true`. Custom items embed into the system `_UITabBarPlatterView` dual-layer structure, preserving system glass compositing and selection animation.</p> ![System glass mode](Resources/systemAndGlass.gif) </p> 2. **Custom container**: `designType = .automatic`, `usesSystemGlassEffect = false`. Hides system buttons and lays out `ESTabBarItemContainer` across the full width for fully custom appearance.</p> ![No system glass mode](Resources/systemNoGlass.gif) </p> 3. **Mandatory old design**: `designType = .old`. Always uses legacy layout; on iOS 26+ hides the platter and distributes tabs evenly, matching pre-iOS 26 behavior.</p> ![Mandatory old design](Resources/mandatoryOldDesign.gif)
 
 ## Requirements
 
 * Xcode 8 or later
-* iOS 8.0 or later
+* iOS 8.0 or later (Liquid Glass requires iOS 26.0+)
 * ARC
 * Swift 5 or later
 
 ## Demo
 
-You can download and build ESTabBarControllerExample project, and you will find more examples to use ESTabBarController, and also more examples to customize UITabBar。
+You can download and build ESTabBarControllerExample project, and you will find more examples to use ESTabBarController, and also more examples to customize UITabBar. The Basic section includes the three iOS 26 layout modes above.
+
+### iOS 26 Liquid Glass
+
+```swift
+let tabBarController = ESTabBarController()
+if let tabBar = tabBarController.tabBar as? ESTabBar {
+    // .automatic (default, adapts by OS) or .old (force legacy layout)
+    tabBar.designType = .automatic
+
+    // Only when designType == .automatic on iOS 26+
+    // true: system glass dual-layer embed (default); false: custom container full-width layout
+    tabBar.usesSystemGlassEffect = true
+}
+```
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `designType` | `.automatic` | `.old` ignores `usesSystemGlassEffect` and always uses legacy layout |
+| `usesSystemGlassEffect` | `true` | Effective only with `.automatic` on iOS 26+ |
 
 ## Usage
 
