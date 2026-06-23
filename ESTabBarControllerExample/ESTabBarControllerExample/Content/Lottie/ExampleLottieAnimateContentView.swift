@@ -8,7 +8,6 @@
 
 import UIKit
 import Lottie
-import ESTabBarController
 
 class ExampleLottieAnimateBasicContentView: ESTabBarItemContentView {
     
