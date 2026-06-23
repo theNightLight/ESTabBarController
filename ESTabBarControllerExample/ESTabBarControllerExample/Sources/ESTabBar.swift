@@ -184,8 +184,8 @@ open class ESTabBar: UITabBar {
     ///         └── _UITabButton × N
     /// ```
     ///
-    /// - `true`：保留系统 tabBarButton 占位与触摸；自定义展示视图作为 layer 直接子视图，
-    ///   与 tabBarButton 同级替换其视觉（SelectedContentView / ContentView 各一层）。
+    /// - `true`：直接隐藏系统 tabBarButton；自定义展示视图作为 layer 直接子视图同级替换。
+    ///   触摸由 ESTabBar 上的 container 处理，视觉参与系统玻璃合成。
     ///
     /// - `false`：隐藏系统 tabBarButton 及选中装饰，在 TabBar 上叠加
     ///   `ESTabBarItemContainer`，按 platter 区域均分布局（`updateLayoutForLiquidGlass`）。
@@ -1077,18 +1077,28 @@ private extension ESTabBar /* System Glass Effect Layout */ {
             return
         }
         
-        // 保留系统 tabBarButton 可见与可交互，隐藏叠加 container。
+        // 隐藏叠加 container 的视觉层由双层 display 承担；container 保留用于触摸。
         buttonInfos.forEach {
             $0.view.isHidden = false
             $0.view.alpha = 1.0
             $0.view.isUserInteractionEnabled = true
         }
-        containers.forEach { $0.isHidden = true }
-        
         installGlassLayerContent(in: platter, tabBarItems: tabBarItems)
         syncGlassLayerDisplays(tabBarItems: tabBarItems)
         
-        // 对齐隐藏 container 的 frame，供无障碍等逻辑使用。
+        for (idx, container) in containers.enumerated() {
+            guard idx < tabBarItems.count else { continue }
+            let item = tabBarItems[idx]
+            let isCustomItem = item is ESTabBarItem || (isMoreItem(idx) && moreContentView != nil)
+            if isCustomItem {
+                container.isHidden = false
+                bringSubviewToFront(container)
+            } else {
+                container.isHidden = true
+            }
+        }
+        
+        // 对齐 container 的 frame，供触摸与无障碍使用。
         if buttonInfos.count >= containers.count {
             for (idx, container) in containers.enumerated() where idx < buttonInfos.count {
                 container.frame = buttonInfos[idx].frameInTabBar
@@ -1166,9 +1176,9 @@ private extension ESTabBar /* System Glass Effect Layout */ {
         }
     }
     
-    /// 用自定义展示视图替换系统 tabBarButton：隐藏原 button，在同层（ContentView / SelectedContentView）插入自定义 view。
+    /// 用自定义展示视图替换系统 tabBarButton：直接隐藏原 button，在同层插入自定义 view。
     ///
-    /// 系统 tabBarButton 保留占位与触摸（`alpha = 0`），自定义 view 叠在其上且不参与触摸。
+    /// 系统 tabBarButton 使用 `hideViewTree` 完全隐藏；触摸由 ESTabBar 上的 container 处理。
     /// - Parameter displayAsSelected: `true` 替换 SelectedContentView 层；`false` 替换 ContentView 层。
     private func replaceGlassDisplayView(
         _ displayView: ESTabBarItemContentView,
@@ -1186,9 +1196,7 @@ private extension ESTabBar /* System Glass Effect Layout */ {
         displayView.frame = buttonFrame
         displayView.autoresizingMask = tabButton.autoresizingMask
         
-        // 视觉上隐藏系统 tabBarButton，保留 frame 与触摸响应。
-        tabButton.alpha = 0.0
-        tabButton.isUserInteractionEnabled = true
+        hideViewTree(tabButton)
         
         if displayView.superview !== layerView {
             displayView.removeFromSuperview()
@@ -1278,9 +1286,8 @@ internal extension ESTabBar /* Actions */ {
     /// - container 负责触摸事件（highlight / select / hijack）。
     ///
     /// **系统玻璃嵌入模式**（`usesGlass == true`）
-    /// - container 仍创建但默认隐藏（`isHidden = true`），不参与触摸；
-    /// - 为每个 ESTabBarItem 额外创建 `GlassLayerDisplayPair`（selected + normal），
-    ///   在后续 `installGlassLayerContent` 中替换 platter 双层内的系统 tabBarButton。
+    /// - container 负责触摸；contentView 不放入 container，由双层 display 承担展示；
+    /// - 为每个 ESTabBarItem 创建 `GlassLayerDisplayPair`，在 `installGlassLayerContent` 中替换系统 tabBarButton。
     ///
     /// items / designType / usesSystemGlassEffect 变化时均会触发此方法。
     func reload() {
@@ -1303,7 +1310,6 @@ internal extension ESTabBar /* Actions */ {
             self.containers.append(container)
             
             if usesGlass {
-                container.isHidden = true
                 if let item = item as? ESTabBarItem {
                     let selectedDisplay = makeGlassLayerDisplay(from: item.contentView)
                     let normalDisplay = makeGlassLayerDisplay(from: item.contentView)
