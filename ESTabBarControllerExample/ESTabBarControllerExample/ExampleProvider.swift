@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import ESTabBarController
 
 enum ExampleProvider {
     static func systemStyle() -> UITabBarController {
