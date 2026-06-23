@@ -184,10 +184,8 @@ open class ESTabBar: UITabBar {
     ///         └── _UITabButton × N
     /// ```
     ///
-    /// - `true`：不隐藏系统 tabBarButton；将自定义 item 的展示视图分别嵌入
-    ///   两层内的 `_UITabButton`，替换系统 icon/label，保留 destOut 玻璃合成管线。
-    ///   选中态 UI 只写入 SelectedContentView，未选中态 UI 只写入 ContentView。
-    ///   点击由系统 tabBarButton 处理，container 隐藏仅保留无障碍等用途。
+    /// - `true`：保留系统 tabBarButton 占位与触摸；自定义展示视图作为 layer 直接子视图，
+    ///   与 tabBarButton 同级替换其视觉（SelectedContentView / ContentView 各一层）。
     ///
     /// - `false`：隐藏系统 tabBarButton 及选中装饰，在 TabBar 上叠加
     ///   `ESTabBarItemContainer`，按 platter 区域均分布局（`updateLayoutForLiquidGlass`）。
@@ -201,8 +199,8 @@ open class ESTabBar: UITabBar {
     
     /// iOS 26 系统玻璃模式下，每个自定义 item 对应的一对双层展示视图。
     ///
-    /// - `selectedDisplay`：嵌入 SelectedContentView 内 tabButton，强制展示选中态 UI。
-    /// - `normalDisplay`：嵌入 ContentView 内 tabButton，强制展示未选中态 UI。
+    /// - `selectedDisplay`：替换 SelectedContentView 内对应 tabBarButton，强制展示选中态 UI。
+    /// - `normalDisplay`：替换 ContentView 内对应 tabBarButton，强制展示未选中态 UI。
     /// - `sourceContentView`：弱引用主 contentView，选中切换时从此同步视觉属性。
     ///
     /// 注意：主 `contentView` 仍在 ESTabBarItem 上维护选中状态与动画，
@@ -215,7 +213,7 @@ open class ESTabBar: UITabBar {
     
     /// 当前所有 item 的双层展示视图缓存，与 `reload()` 生命周期一致。
     internal var glassLayerDisplayPairs = [GlassLayerDisplayPair]()
-    /// 标记嵌入系统 tabBarButton 内的自定义展示视图，便于移除时与系统子视图区分。
+    /// 标记替换系统 tabBarButton 的自定义展示视图，便于清理时识别。
     private static let glassCustomContentTag = 9_001
     
     open override var items: [UITabBarItem]? {
@@ -1039,9 +1037,9 @@ private extension ESTabBar /* System Glass Effect Layout */ {
     // 双层结构（均为 _UITabBarPlatterView 子视图）：
     //   _UITabBarPlatterView
     //     ├── SelectedContentView（高亮层：选中 tab 图标放大，参与 destOut 裁切）
-    //     │     └── _UITabButton × N  ← 嵌入 selectedDisplay（强制选中态 UI）
+    //     │     └── _UITabButton × N  ← 由 selectedDisplay 同级替换（layer 直接子视图）
     //     └── ContentView（显示层：所有 tab 未选中样式，合成在选中层下方）
-    //           └── _UITabButton × N  ← 嵌入 normalDisplay（强制未选中态 UI）
+    //           └── _UITabButton × N  ← 由 normalDisplay 同级替换（layer 直接子视图）
     //
     // 为什么需要两个展示视图：
     //   iOS 26 选中/未选中由不同层渲染，切换 tab 时并非同一 button 改状态，
@@ -1050,7 +1048,7 @@ private extension ESTabBar /* System Glass Effect Layout */ {
     // 整体流程（updateLayoutForSystemGlassEffect）：
     //   1. 确认 platter 存在，否则回退到 updateLayoutForLiquidGlass
     //   2. 保持系统 tabBarButton 可见可交互；隐藏 container
-    //   3. installGlassLayerContent：替换两层内 tabButton 的 icon/label
+    //   3. installGlassLayerContent：在两层内用自定义 view 替换 tabBarButton（同级，非 subview）
     //   4. syncGlassLayerDisplays：从主 contentView 同步视觉属性
     //   5. 对齐 container 隐藏 frame（无障碍）
     
@@ -1117,10 +1115,10 @@ private extension ESTabBar /* System Glass Effect Layout */ {
             .sorted { $0.frame.origin.x < $1.frame.origin.x }
     }
     
-    /// 遍历 tabBarItems，将 `glassLayerDisplayPairs` 中的展示视图安装到双层 tabButton。
+    /// 遍历 tabBarItems，用 `glassLayerDisplayPairs` 替换双层内的系统 tabBarButton。
     ///
-    /// 仅处理 ESTabBarItem 与自定义 More；普通 UITabBarItem（mixture 模式）跳过，
-    /// 保留系统原生渲染。
+    /// 自定义展示视图作为 SelectedContentView / ContentView 的直接子视图，
+    /// 与 `_UITabButton` 同级并覆盖其 frame，而非添加到 tabButton 内部。
     private func installGlassLayerContent(in platter: UIView, tabBarItems: [UITabBarItem]) {
         let layers = platterContentLayers(in: platter)
         guard let selectedLayer = layers.selected, let normalLayer = layers.normal else {
@@ -1150,17 +1148,17 @@ private extension ESTabBar /* System Glass Effect Layout */ {
             pairIndex += 1
             
             if idx < selectedButtons.count {
-                embedGlassDisplayView(
+                replaceGlassDisplayView(
                     pair.selectedDisplay,
-                    in: selectedButtons[idx],
+                    replacing: selectedButtons[idx],
                     source: sourceContentView,
                     displayAsSelected: true
                 )
             }
             if idx < normalButtons.count {
-                embedGlassDisplayView(
+                replaceGlassDisplayView(
                     pair.normalDisplay,
-                    in: normalButtons[idx],
+                    replacing: normalButtons[idx],
                     source: sourceContentView,
                     displayAsSelected: false
                 )
@@ -1168,45 +1166,42 @@ private extension ESTabBar /* System Glass Effect Layout */ {
         }
     }
     
-    /// 将单个展示视图嵌入系统 tabButton：隐藏系统 icon/label，添加自定义展示层。
+    /// 用自定义展示视图替换系统 tabBarButton：隐藏原 button，在同层（ContentView / SelectedContentView）插入自定义 view。
     ///
-    /// - Parameter displayAsSelected: `true` 写入 SelectedContentView 层（选中态）；
-    ///   `false` 写入 ContentView 层（未选中态）。
-    private func embedGlassDisplayView(
+    /// 系统 tabBarButton 保留占位与触摸（`alpha = 0`），自定义 view 叠在其上且不参与触摸。
+    /// - Parameter displayAsSelected: `true` 替换 SelectedContentView 层；`false` 替换 ContentView 层。
+    private func replaceGlassDisplayView(
         _ displayView: ESTabBarItemContentView,
-        in tabButton: UIView,
+        replacing tabButton: UIView,
         source: ESTabBarItemContentView,
         displayAsSelected: Bool
     ) {
-        hideSystemTabButtonContent(in: tabButton)
+        guard let layerView = tabButton.superview else { return }
         
         displayView.syncVisualAppearance(from: source, displayAsSelected: displayAsSelected)
         displayView.tag = Self.glassCustomContentTag
         displayView.isUserInteractionEnabled = false
-        displayView.frame = tabButton.bounds
-        displayView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
-        if displayView.superview !== tabButton {
+        let buttonFrame = tabButton.frame
+        displayView.frame = buttonFrame
+        displayView.autoresizingMask = tabButton.autoresizingMask
+        
+        // 视觉上隐藏系统 tabBarButton，保留 frame 与触摸响应。
+        tabButton.alpha = 0.0
+        tabButton.isUserInteractionEnabled = true
+        
+        if displayView.superview !== layerView {
             displayView.removeFromSuperview()
-            tabButton.addSubview(displayView)
+            let insertIndex = layerView.subviews.firstIndex(of: tabButton).map { $0 + 1 } ?? layerView.subviews.count
+            layerView.insertSubview(displayView, at: insertIndex)
         }
+        displayView.frame = buttonFrame
         
-        tabButton.clipsToBounds = false
         displayView.setNeedsLayout()
         displayView.layoutIfNeeded()
     }
     
-    /// 隐藏系统 tabBarButton 自带的 UIImageView / UILabel。
-    private func hideSystemTabButtonContent(in tabButton: UIView) {
-        for subview in tabButton.subviews where subview.tag != Self.glassCustomContentTag {
-            if subview is UIImageView || subview is UILabel {
-                subview.isHidden = true
-                subview.alpha = 0.0
-            }
-        }
-    }
-    
-    /// 清理所有双层展示视图，恢复系统 tabButton 原始 icon/label。
+    /// 清理所有双层展示视图，恢复被替换的系统 tabBarButton。
     /// 在 `reload()`、切换 `usesSystemGlassEffect` / `designType`、进入编辑模式时调用。
     func removeGlassLayerDisplays() {
         guard let platter = platterViewInTabBar() else {
@@ -1215,24 +1210,19 @@ private extension ESTabBar /* System Glass Effect Layout */ {
         }
         
         let layers = platterContentLayers(in: platter)
-        let buttons = [layers.selected, layers.normal]
-            .compactMap { $0 }
-            .flatMap { sortedTabButtons(in: $0) }
-        
-        for button in buttons {
-            restoreSystemTabButtonContent(in: button)
+        for layer in [layers.selected, layers.normal].compactMap({ $0 }) {
+            layer.subviews
+                .filter { $0.tag == Self.glassCustomContentTag }
+                .forEach { $0.removeFromSuperview() }
+            sortedTabButtons(in: layer).forEach { restoreSystemTabButton($0) }
         }
         glassLayerDisplayPairs.removeAll()
     }
     
-    private func restoreSystemTabButtonContent(in tabButton: UIView) {
-        tabButton.viewWithTag(Self.glassCustomContentTag)?.removeFromSuperview()
-        for subview in tabButton.subviews {
-            if subview is UIImageView || subview is UILabel {
-                subview.isHidden = false
-                subview.alpha = 1.0
-            }
-        }
+    private func restoreSystemTabButton(_ tabButton: UIView) {
+        tabButton.isHidden = false
+        tabButton.alpha = 1.0
+        tabButton.isUserInteractionEnabled = true
     }
     
     /// 将每个 ESTabBarItem 主 contentView 的视觉属性同步到双层镜像视图。
@@ -1290,7 +1280,7 @@ internal extension ESTabBar /* Actions */ {
     /// **系统玻璃嵌入模式**（`usesGlass == true`）
     /// - container 仍创建但默认隐藏（`isHidden = true`），不参与触摸；
     /// - 为每个 ESTabBarItem 额外创建 `GlassLayerDisplayPair`（selected + normal），
-    ///   在后续 `installGlassLayerContent` 中写入 platter 双层 tabButton。
+    ///   在后续 `installGlassLayerContent` 中替换 platter 双层内的系统 tabBarButton。
     ///
     /// items / designType / usesSystemGlassEffect 变化时均会触发此方法。
     func reload() {
