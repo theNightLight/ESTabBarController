@@ -103,10 +103,11 @@ open ESTabBarController
 
 ## Sponsor
 
-You can support the project by checking out our sponsor page. It takes only one click:
+If this project helps you, consider buying me a coffee:
 
-<a href='https://tracking.gitads.io/?repo=ESTabBarController'><img src="https://images.gitads.io/ESTabBarController" alt="git-ad"/></a>
-<br><i>This advert was placed by <a href="https://tracking.gitads.io/?campaign=gitads&repo=ESTabBarController&redirect=gitads.io">GitAds</a> </i>
+| Alipay | WeChat |
+|--------|--------|
+| ![Alipay](Resources/sponsorship_ali.JPG) | ![WeChat](Resources/sponsorship_wx.JPG) |
 
 
 ## Acknowledgement
@@ -135,4 +136,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Original Author
+
+This project is modified based on [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController). Original author: [eggswift](https://github.com/eggswift/ESTabBarController)
 

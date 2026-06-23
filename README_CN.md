@@ -90,10 +90,11 @@ open ESTabBarController
 
 ## 赞助
 
-您可以通过查看我们的赞助商页面来支持该项目。 只需单击一下即可：
+如果这个项目对你有帮助，欢迎扫码支持：
 
-<a href='https://tracking.gitads.io/?repo=ESTabBarController'><img src="https://images.gitads.io/ESTabBarController" alt="git-ad"/></a>
-<br><i>这则广告来自 <a href="https://tracking.gitads.io/?campaign=gitads&repo=ESTabBarController&redirect=gitads.io">GitAds</a> </i>
+| 支付宝 | 微信 |
+|--------|------|
+| ![支付宝](Resources/sponsorship_ali.JPG) | ![微信](Resources/sponsorship_wx.JPG) |
 
 
 ## 感谢
@@ -121,4 +122,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## 原作者
+
+本项目基于 [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController) 修改。原作者：[eggswift](https://github.com/eggswift/ESTabBarController)
 
