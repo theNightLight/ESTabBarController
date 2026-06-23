@@ -369,6 +369,40 @@ open class ESTabBarItemContentView: UIView {
     }
 
     // MARK: - INTERNAL METHODS
+    
+    /// 将源 contentView 的可视属性复制到当前实例，并强制展示为选中或未选中样式。
+    ///
+    /// 专用于 iOS 26 系统玻璃双层嵌入：`selectedDisplay` 传 `displayAsSelected: true`，
+    /// `normalDisplay` 传 `false`。主 contentView 仍负责维护真实选中状态与动画，
+    /// 此方法仅同步「当前应展示的外观」到镜像层。
+    ///
+    /// - Parameters:
+    ///   - source: 主 contentView（ESTabBarItem 上的那个）。
+    ///   - selected: 强制镜像层展示的选中状态，与 source.selected 无关。
+    internal func syncVisualAppearance(from source: ESTabBarItemContentView, displayAsSelected selected: Bool) {
+        title = source.title
+        image = source.image
+        selectedImage = source.selectedImage
+        textColor = source.textColor
+        highlightTextColor = source.highlightTextColor
+        iconColor = source.iconColor
+        highlightIconColor = source.highlightIconColor
+        backdropColor = source.backdropColor
+        highlightBackdropColor = source.highlightBackdropColor
+        renderingMode = source.renderingMode
+        itemContentMode = source.itemContentMode
+        titlePositionAdjustment = source.titlePositionAdjustment
+        insets = source.insets
+        badgeValue = source.badgeValue
+        badgeColor = source.badgeColor
+        badgeOffset = source.badgeOffset
+        enabled = source.enabled
+        self.selected = selected
+        highlighted = false
+        updateDisplay()
+        setNeedsLayout()
+    }
+    
     internal final func select(animated: Bool, completion: (() -> ())?) {
         selected = true
         if enabled && highlighted {

@@ -19,11 +19,14 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             "UITabBarController style",
             "ESTabBarController like system style",
             "Mix ESTabBar and UITabBar",
+            "ESTabBarController style with GlassEffect",
             "UITabBarController style with 'More'",
             "ESTabBarController style with 'More'",
             "Mix ESTabBar and UITabBar with 'More'",
+            "ESTabBarController style with GlassEffect and 'More' ",
             "UITabBarController style with non-zero default index",
-            "ESTabBarController style with non-zero default index"
+            "ESTabBarController style with non-zero default index",
+            "ESTabBarController style Mandatory Old Design",
         ],
         [
             "ESTabBarController embeds the UINavigationController style",
@@ -60,11 +63,14 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             "UITabBarController样式",
             "ESTabBarController仿系统样式",
             "ESTabBar和UITabBar混合样式",
+            "ESTabBarController 玻璃效果",
             "带有'More'的UITabBarController样式",
             "带有'More'的ESTabBarController样式",
             "带有'More'的ESTabBar和UITabBar混合样式",
+            "带有'More'的ESTabBarController 玻璃效果",
             "默认index非0的UITabBarController样式",
-            "默认index非0的ESTabBarController样式"
+            "默认index非0的ESTabBarController样式",
+            "ESTabBarController 强制使用旧版本UI",
         ],
         [
             "UINavigationController内嵌UITabBarController样式",
@@ -155,20 +161,28 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             case 2:
                 self.present(ExampleProvider.mixtureStyle(), animated: true, completion: nil)
             case 3:
+                self.present(ExampleProvider.customGlassStyle(), animated: true, completion: nil)
+            case 4:
                 let tabBarController = ExampleProvider.systemMoreStyle()
 //                tabBarController.delegate = self
                 self.present(tabBarController, animated: true, completion: nil)
                 
-            case 4:
-                self.present(ExampleProvider.customMoreStyle(), animated: true, completion: nil)
             case 5:
-                self.present(ExampleProvider.mixtureMoreStyle(), animated: true, completion: nil)
+                self.present(ExampleProvider.customMoreStyle(), animated: true, completion: nil)
             case 6:
+                self.present(ExampleProvider.mixtureMoreStyle(), animated: true, completion: nil)
+            case 7:
+                self.present(ExampleProvider.customGlassMoreStyle(), animated: true, completion: nil)
+            case 8:
                 let tabBarController = ExampleProvider.systemStyle()
                 self.present(tabBarController, animated: true, completion: nil)
                 tabBarController.selectedIndex = 2
-            case 7:
+            case 9:
                 let tabBarController = ExampleProvider.customStyle()
+                self.present(tabBarController, animated: true, completion: nil)
+                tabBarController.selectedIndex = 2
+            case 10:
+                let tabBarController = ExampleProvider.mandatoryOldDesignStyle()
                 self.present(tabBarController, animated: true, completion: nil)
                 tabBarController.selectedIndex = 2
             default:

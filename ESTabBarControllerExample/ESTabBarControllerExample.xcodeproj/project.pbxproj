@@ -15,6 +15,7 @@
 		7C0A87B62FE3EB4D00DB92C7 /* ESTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0A87A92FE3EB4D00DB92C7 /* ESTabBarItem.swift */; };
 		7C0A87B72FE3EB4D00DB92C7 /* ESTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0A87A82FE3EB4D00DB92C7 /* ESTabBarController.swift */; };
 		7C0A87B82FE3EB4D00DB92C7 /* ESTabBarItemMoreContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0A87AD2FE3EB4D00DB92C7 /* ESTabBarItemMoreContentView.swift */; };
+		7C0A87F32FEA354E00DB92C7 /* ExampleGlassTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0A87F22FEA354E00DB92C7 /* ExampleGlassTabbarController.swift */; };
 		91EE91BC2A0A55200070C8FC /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 91EE91BB2A0A55200070C8FC /* Lottie */; };
 		F6858F411E4F435C002DAF6C /* IconTransitions.json in Resources */ = {isa = PBXBuildFile; fileRef = F6858F3F1E4F435C002DAF6C /* IconTransitions.json */; };
 		F6858F441E4F436F002DAF6C /* ExampleLottieAnimateContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6858F431E4F436F002DAF6C /* ExampleLottieAnimateContentView.swift */; };
@@ -47,6 +48,7 @@
 		7C0A87AC2FE3EB4D00DB92C7 /* ESTabBarItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ESTabBarItemContentView.swift; sourceTree = "<group>"; };
 		7C0A87AD2FE3EB4D00DB92C7 /* ESTabBarItemMoreContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ESTabBarItemMoreContentView.swift; sourceTree = "<group>"; };
 		7C0A87AE2FE3EB4D00DB92C7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7C0A87F22FEA354E00DB92C7 /* ExampleGlassTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleGlassTabbarController.swift; sourceTree = "<group>"; };
 		F6858F3F1E4F435C002DAF6C /* IconTransitions.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = IconTransitions.json; sourceTree = "<group>"; };
 		F6858F401E4F435C002DAF6C /* Lottie.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Lottie.framework; sourceTree = "<group>"; };
 		F6858F431E4F436F002DAF6C /* ExampleLottieAnimateContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleLottieAnimateContentView.swift; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				F6EE45591E4AC173001E0FA1 /* ViewController.swift */,
 				F6EE45A11E4C4BC4001E0FA1 /* ExampleProvider.swift */,
 				F6EE45A31E4C4D72001E0FA1 /* ExampleViewController.swift */,
+				7C0A87F22FEA354E00DB92C7 /* ExampleGlassTabbarController.swift */,
 				F6EE45A41E4C4D72001E0FA1 /* ExampleNavigationController.swift */,
 				F6858F4A1E4F516F002DAF6C /* Content */,
 				F6EE45A71E4C4DA3001E0FA1 /* Me */,
@@ -320,6 +323,7 @@
 				F6858F531E4F516F002DAF6C /* ExampleBackgroundContentView.swift in Sources */,
 				F6858F541E4F516F002DAF6C /* ExampleBasicContentView.swift in Sources */,
 				F6EE45AB1E4C4DA3001E0FA1 /* WebViewController.swift in Sources */,
+				7C0A87F32FEA354E00DB92C7 /* ExampleGlassTabbarController.swift in Sources */,
 				F6858F581E4F516F002DAF6C /* ExampleTipsContentView.swift in Sources */,
 				F6EE45581E4AC173001E0FA1 /* AppDelegate.swift in Sources */,
 			);

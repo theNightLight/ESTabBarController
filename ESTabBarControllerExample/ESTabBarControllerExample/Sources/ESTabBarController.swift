@@ -100,6 +100,28 @@ open class ESTabBarController: UITabBarController, ESTabBarDelegate {
     }
 
     // MARK: - UITabBar delegate
+    open func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
+        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
+            if delegate?.tabBarController?(self, shouldSelect: vc) == false {
+                return false
+            }
+        }
+        
+        guard let estTabBar = tabBar as? ESTabBar else {
+            return true
+        }
+        if #available(iOS 26.0, *), estTabBar.isSystemGlassEffectActive {
+            if estTabBar.customDelegate?.tabBar(tabBar, shouldHijack: item) == true {
+                estTabBar.customDelegate?.tabBar(tabBar, didHijack: item)
+                if let idx = tabBar.items?.firstIndex(of: item) {
+                    estTabBar.performGlassHijackFeedback(at: idx, animated: true)
+                }
+                return false
+            }
+        }
+        return true
+    }
+    
     open override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         guard let idx = tabBar.items?.firstIndex(of: item) else {
             return;
@@ -129,13 +151,6 @@ open class ESTabBarController: UITabBarController, ESTabBarDelegate {
     }
     
     // MARK: - ESTabBar delegate
-    internal func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
-        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
-            return delegate?.tabBarController?(self, shouldSelect: vc) ?? true
-        }
-        return true
-    }
-    
     internal func tabBar(_ tabBar: UITabBar, shouldHijack item: UITabBarItem) -> Bool {
         if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
             return shouldHijackHandler?(self, vc, idx) ?? false

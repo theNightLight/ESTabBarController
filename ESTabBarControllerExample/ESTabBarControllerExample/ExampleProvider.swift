@@ -49,6 +49,74 @@ enum ExampleProvider {
         return tabBarController
     }
     
+    static func mandatoryOldDesignStyle() -> ESTabBarController {
+        let tabBarController = ESTabBarController()
+        if let tabBar = tabBarController.tabBar as? ESTabBar {
+            tabBar.designType = .old
+            tabBar.backgroundColor = UIColor.white
+        }
+        let v1 = ExampleViewController()
+        let v2 = ExampleViewController()
+        let v3 = ExampleViewController()
+        let v4 = ExampleViewController()
+        let v5 = ExampleViewController()
+        
+        v1.tabBarItem = ESTabBarItem.init(title: "Home", image: UIImage(named: "home"), selectedImage: UIImage(named: "home_1"))
+        v2.tabBarItem = ESTabBarItem.init(title: "Find", image: UIImage(named: "find"), selectedImage: UIImage(named: "find_1"))
+        v3.tabBarItem = ESTabBarItem.init(title: "Photo", image: UIImage(named: "photo"), selectedImage: UIImage(named: "photo_1"))
+        v4.tabBarItem = ESTabBarItem.init(title: "Favor", image: UIImage(named: "favor"), selectedImage: UIImage(named: "favor_1"))
+        v5.tabBarItem = ESTabBarItem.init(title: "Me", image: UIImage(named: "me"), selectedImage: UIImage(named: "me_1"))
+        
+        tabBarController.viewControllers = [v1, v2, v3, v4, v5]
+        
+        return tabBarController
+    }
+    
+    static func customGlassStyle() -> ExampleGlassTabbarController {
+        let tabBarController = ExampleGlassTabbarController()
+        let v1 = ExampleViewController()
+        let v2 = ExampleViewController()
+        let v3 = ExampleViewController()
+        let v4 = ExampleViewController()
+        let v5 = ExampleViewController()
+        
+        v1.tabBarItem = ESTabBarItem.init(title: "Home", image: UIImage(named: "home"), selectedImage: UIImage(named: "home_1"))
+        v2.tabBarItem = ESTabBarItem.init(title: "Find", image: UIImage(named: "find"), selectedImage: UIImage(named: "find_1"))
+        v3.tabBarItem = ESTabBarItem.init(title: "Photo", image: UIImage(named: "photo"), selectedImage: UIImage(named: "photo_1"))
+        v4.tabBarItem = ESTabBarItem.init(title: "Favor", image: UIImage(named: "favor"), selectedImage: UIImage(named: "favor_1"))
+        v5.tabBarItem = ESTabBarItem.init(title: "Me", image: UIImage(named: "me"), selectedImage: UIImage(named: "me_1"))
+        
+        tabBarController.viewControllers = [v1, v2, v3, v4, v5]
+        
+        return tabBarController
+    }
+    
+    
+    static func customGlassMoreStyle() -> ExampleGlassTabbarController {
+        let tabBarController = ExampleGlassTabbarController()
+        let v1 = ExampleViewController()
+        let v2 = ExampleViewController()
+        let v3 = ExampleViewController()
+        let v4 = ExampleViewController()
+        let v5 = ExampleViewController()
+        let v6 = ExampleViewController()
+        let v7 = ExampleViewController()
+        let v8 = ExampleViewController()
+        
+        v1.tabBarItem = ESTabBarItem.init(title: "Home", image: UIImage(named: "home"), selectedImage: UIImage(named: "home_1"))
+        v2.tabBarItem = ESTabBarItem.init(title: "Find", image: UIImage(named: "find"), selectedImage: UIImage(named: "find_1"))
+        v3.tabBarItem = ESTabBarItem.init(title: "Photo", image: UIImage(named: "photo"), selectedImage: UIImage(named: "photo_1"))
+        v4.tabBarItem = ESTabBarItem.init(title: "Favor", image: UIImage(named: "favor"), selectedImage: UIImage(named: "favor_1"))
+        v5.tabBarItem = ESTabBarItem.init(title: "Me", image: UIImage(named: "me"), selectedImage: UIImage(named: "me_1"))
+        v6.tabBarItem = ESTabBarItem.init(title: "Message", image: UIImage(named: "message"), selectedImage: UIImage(named: "message_1"))
+        v7.tabBarItem = ESTabBarItem.init(title: "Shop", image: UIImage(named: "shop"), selectedImage: UIImage(named: "shop_1"))
+        v8.tabBarItem = ESTabBarItem.init(title: "Cardboard", image: UIImage(named: "cardboard"), selectedImage: UIImage(named: "cardboard_1"))
+        
+        tabBarController.viewControllers = [v1, v2, v3, v4, v5, v6, v7, v8]
+        
+        return tabBarController
+    }
+    
     static func mixtureStyle() -> ESTabBarController {
         let tabBarController = ESTabBarController()
         let v1 = ExampleViewController()
@@ -496,8 +564,8 @@ enum ExampleProvider {
         return navigationController
     }
     
-    static func lottieSytle() -> ESTabBarController {
-        let tabBarController = ESTabBarController()
+    static func lottieSytle() -> ExampleGlassTabbarController {
+        let tabBarController = ExampleGlassTabbarController()
         let v1 = ExampleViewController()
         let v2 = ExampleViewController()
         let v3 = ExampleViewController()
