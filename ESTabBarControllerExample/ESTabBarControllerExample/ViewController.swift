@@ -163,10 +163,13 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             case 2:
                 self.present(ExampleProvider.mixtureStyle(), animated: true, completion: nil)
             case 3:
-                self.present(ExampleProvider.customGlassStyle(), animated: true, completion: nil)
+                
+                    let tabBarController = ExampleProvider.customGlassStyle()
+                    tabBarController.delegate = self
+                self.present(tabBarController, animated: true, completion: nil)
             case 4:
                 let tabBarController = ExampleProvider.systemMoreStyle()
-//                tabBarController.delegate = self
+                tabBarController.delegate = self
                 self.present(tabBarController, animated: true, completion: nil)
                 
             case 5:
@@ -262,67 +265,25 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
     
     
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
-        guard viewController === tabBarController.moreNavigationController else {
-            return true
+  
+        if let tabBarItem = viewController.tabBarItem as? ESTabBarItem, tabBarItem.contentView.title == "Photo"{
+            showCustomMoreDialog(from: tabBarController)
+            return false
         }
-        originalSelectIndex = tabBarController.selectedIndex
-        showCustomMoreDialog(from: tabBarController)
-        DispatchQueue.main.async {
-            DispatchQueue.main.async {
-                self.highlightMoreTab(in: tabBarController)
-            }
+        if let tabBarItem = viewController.tabBarItem, tabBarItem.title == "Photo"{
+            showCustomMoreDialog(from: tabBarController)
+            return false
         }
-        return false
+        return true
     }
     
-    private func moreTabBarIndex(in tabBarController: UITabBarController) -> Int? {
-        guard tabBarController.moreNavigationController.parent != nil,
-              let count = tabBarController.tabBar.items?.count, count > 0 else {
-            return nil
-        }
-        return count - 1
-    }
-    
-    private func highlightMoreTab(in tabBarController: UITabBarController) {
-        guard moreTabBarIndex(in: tabBarController) != nil else { return }
-        
-        UIView.performWithoutAnimation {
-            if #available(iOS 18.0, *) {
-                if let moreIndex = self.moreTabBarIndex(in: tabBarController),
-                   tabBarController.tabs.indices.contains(moreIndex) {
-                    tabBarController.selectedTab = tabBarController.tabs[moreIndex]
-                }
-            } else {
-                tabBarController.selectedViewController = tabBarController.moreNavigationController
-            }
-        }
-    }
-    
-    private func restoreTabBarSelection(in tabBarController: UITabBarController) {
-        guard let viewControllers = tabBarController.viewControllers,
-              viewControllers.indices.contains(originalSelectIndex) else {
-            return
-        }
-        
-        let target = viewControllers[originalSelectIndex]
-        UIView.performWithoutAnimation {
-            if #available(iOS 18.0, *) {
-                if tabBarController.tabs.indices.contains(originalSelectIndex) {
-                    tabBarController.selectedTab = tabBarController.tabs[originalSelectIndex]
-                }
-            }
-            tabBarController.selectedViewController = target
-        }
-    }
     
     func showCustomMoreDialog(from tabBarController: UITabBarController) {
         let alert = UIAlertController(title: "更多功能", message: nil, preferredStyle: .actionSheet)
         
         let restoreSelection = { [weak tabBarController] in
-            guard let tabBarController = tabBarController else { return }
-            DispatchQueue.main.async {
-                self.restoreTabBarSelection(in: tabBarController)
-            }
+            guard tabBarController != nil else { return }
+            tabBarController?.selectedIndex = 3
         }
         
         alert.addAction(UIAlertAction(title: "设置", style: .default) { _ in restoreSelection() })

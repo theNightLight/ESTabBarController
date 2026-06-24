@@ -45,18 +45,18 @@ internal protocol ESTabBarDelegate: NSObjectProtocol {
     func tabBar(_ tabBar: UITabBar, didHijack item: UITabBarItem)
 }
 
-/// 自定义 TabBar：通过 `ESTabBarItemContainer` 承载自定义 item，iOS 26+ 可选系统玻璃双层嵌入。
+/// 自定义 TabBar：非玻璃模式用 `ESTabBarItemContainer`；iOS 26 玻璃模式仅嵌入 platter 双层。
 open class ESTabBar: UITabBar {
 
     internal weak var customDelegate: ESTabBarDelegate?
     internal var containers = [ESTabBarItemContainer]()
     internal weak var tabBarController: UITabBarController?
 
-    /// iOS 26 玻璃模式：每个 item 的选中层 / 未选中层镜像视图。
+    /// 系统玻璃模式：每个自定义 item 在选中层 / 未选中层各有一份镜像。
     internal struct GlassLayerDisplayPair {
+        let itemIndex: Int
         let selectedDisplay: ESTabBarItemContentView
         let normalDisplay: ESTabBarItemContentView
-        weak var sourceContentView: ESTabBarItemContentView?
     }
 
     internal var glassLayerDisplayPairs = [GlassLayerDisplayPair]()
@@ -94,7 +94,7 @@ open class ESTabBar: UITabBar {
         didSet { if oldValue != designType { reload() } }
     }
 
-    /// 仅 `designType == .automatic` 且 iOS 26+ 有效。`true` 时双层 mirror 替换系统 button，container 负责触摸。
+    /// 仅 `designType == .automatic` 且 iOS 26+ 有效；自定义 item 只加入 platter 的 ContentView / SelectedContentView。
     open var usesSystemGlassEffect: Bool = true {
         didSet { if oldValue != usesSystemGlassEffect { reload() } }
     }
@@ -137,11 +137,10 @@ open class ESTabBar: UITabBar {
 
     open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         if super.point(inside: point, with: event) { return true }
-        return containers.contains {
-            $0.point(inside: CGPoint(x: point.x - $0.frame.origin.x, y: point.y - $0.frame.origin.y), with: event)
+        return containers.contains { container in
+            container.point(inside: convert(point, to: container), with: event)
         }
     }
-    
 }
 
 // MARK: - Layout
@@ -153,12 +152,8 @@ internal extension ESTabBar {
         let frameInTabBar: CGRect
     }
 
-    var usesModernDesignLayout: Bool {
-        designType == .automatic && isIOS26OrLater
-    }
-
     var isSystemGlassEffectActive: Bool {
-        usesModernDesignLayout && usesSystemGlassEffect
+        designType == .automatic && usesSystemGlassEffect && isIOS26OrLater
     }
 
     var isLegacyOldDesignOnIOS26: Bool {
@@ -170,7 +165,7 @@ internal extension ESTabBar {
         return false
     }
 
-    /// 布局路由：`.old` → legacy；`.automatic` + iOS 26 → glass / overlay；其余 → legacy。
+    /// `.old` → legacy；`.automatic` + iOS 26 → 系统玻璃 / 自定义容器；其余 → legacy。
     func updateLayout() {
         guard let tabBarItems = items else {
             ESTabBarController.printError("empty items")
@@ -300,18 +295,13 @@ internal extension ESTabBar {
 
     private func removeContinuousSelectionGestures(in view: UIView) {
         view.gestureRecognizers?
-            .filter { isContinuousSelectionGesture($0) }
+            .filter { String(describing: type(of: $0)).hasSuffix("_UIContinuousSelectionGestureRecognizer") }
             .forEach { view.removeGestureRecognizer($0) }
         view.subviews.forEach { removeContinuousSelectionGestures(in: $0) }
     }
 
-    private func isContinuousSelectionGesture(_ gesture: UIGestureRecognizer) -> Bool {
-        String(describing: type(of: gesture)).hasSuffix("_UIContinuousSelectionGestureRecognizer")
-    }
-
     func systemTabBarButtonInfos() -> [TabBarButtonInfo] {
-        let buttons = systemTabBarButtonViews()
-        return buttons
+        systemTabBarButtonViews()
             .map { TabBarButtonInfo(view: $0, frameInTabBar: frameInTabBar($0)) }
             .sorted { $0.frameInTabBar.minX < $1.frameInTabBar.minX }
     }
@@ -327,7 +317,7 @@ internal extension ESTabBar {
             .sorted { $0.frame.minX < $1.frame.minX }
     }
 
-    // MARK: View helpers
+    // MARK: Helpers
 
     func isCustomTabItem(_ item: UITabBarItem, at index: Int) -> Bool {
         item is ESTabBarItem || (isMoreItem(index) && moreContentView != nil)
@@ -395,24 +385,17 @@ internal extension ESTabBar {
     func syncSelectionState() {
         guard let tabBarItems = items else { return }
         for (idx, item) in tabBarItems.enumerated() {
+            guard let contentView = contentView(for: item, at: idx) else { continue }
             let selected = item == selectedItem
-            if let cv = contentView(for: item, at: idx) {
-                updateContentViewSelection(cv, selected: selected)
+            if contentView.selected != selected {
+                selected
+                    ? contentView.select(animated: false, completion: nil)
+                    : contentView.deselect(animated: false, completion: nil)
+            } else {
+                contentView.updateDisplay()
             }
         }
         syncGlassLayerDisplaysIfNeeded()
-    }
-
-    private func updateContentViewSelection(_ contentView: ESTabBarItemContentView, selected: Bool) {
-        if contentView.selected != selected {
-            if selected {
-                contentView.select(animated: false, completion: nil)
-            } else {
-                contentView.deselect(animated: false, completion: nil)
-            }
-        } else {
-            contentView.updateDisplay()
-        }
     }
 }
 
@@ -421,25 +404,19 @@ internal extension ESTabBar {
 @available(iOS 26.0, *)
 private extension ESTabBar {
 
-    
     func updateLayoutForLiquidGlass(tabBarItems: [UITabBarItem]) {
         let buttonInfos = systemTabBarButtonInfos()
 
         if isCustomizing {
-            buttonInfos.forEach { showViewTree($0.view) }
-            moreContentView?.isHidden = true
-            containers.forEach { $0.isHidden = true }
+            prepareCustomizingLayout(clearGlassDisplays: false)
             return
         }
 
         for (idx, item) in tabBarItems.enumerated() {
             guard idx < buttonInfos.count else { continue }
-            let button = buttonInfos[idx].view
-            if isCustomTabItem(item, at: idx) {
-                hideViewTree(button)
-            } else {
-                showViewTree(button)
-            }
+            isCustomTabItem(item, at: idx)
+                ? hideViewTree(buttonInfos[idx].view)
+                : showViewTree(buttonInfos[idx].view)
         }
 
         containers.forEach { $0.isHidden = false }
@@ -459,77 +436,61 @@ private extension ESTabBar {
             return
         }
 
-        let buttonInfos = systemTabBarButtonInfos()
-
         if isCustomizing {
-            removeGlassLayerDisplays()
-            buttonInfos.forEach { showViewTree($0.view) }
-            moreContentView?.isHidden = true
-            containers.forEach { $0.isHidden = true }
+            prepareCustomizingLayout(clearGlassDisplays: true)
             return
         }
 
         installGlassLayerContent(tabBarItems: tabBarItems)
         syncGlassLayerDisplays(tabBarItems: tabBarItems)
+        syncSelectionState()
+    }
 
-        for (idx, container) in containers.enumerated() {
-            guard idx < tabBarItems.count else { continue }
-            let show = isCustomTabItem(tabBarItems[idx], at: idx)
-            container.isHidden = !show
-            if show { bringSubviewToFront(container) }
-        }
-
-        if buttonInfos.count >= containers.count {
-            zip(containers, buttonInfos).forEach { $0.frame = $1.frameInTabBar }
-        } else if let platterFrame = platterFrameInTabBar() {
-            applySlotFrames(equalSlotFrames(in: platterFrame, count: containers.count))
-        }
+    func prepareCustomizingLayout(clearGlassDisplays: Bool) {
+        if clearGlassDisplays { removeGlassLayerDisplays() }
+        systemTabBarButtonInfos().forEach { showViewTree($0.view) }
+        moreContentView?.isHidden = true
+        containers.forEach { $0.isHidden = true }
     }
 
     func installGlassLayerContent(tabBarItems: [UITabBarItem]) {
         guard let platter = platterView(),
-              let selectedLayer = platter.subviews.first(where: { matchesSystemClassName($0, target: "SelectedContentView") }),
-              let normalLayer = platter.subviews.first(where: {
-                  matchesSystemClassName($0, target: "ContentView") && !matchesSystemClassName($0, target: "SelectedContentView")
-              }) else { return }
+              let selectedLayer = platterContentLayer(in: platter, selected: true),
+              let normalLayer = platterContentLayer(in: platter, selected: false) else { return }
 
         let selectedButtons = sortedTabButtons(in: selectedLayer)
         let normalButtons = sortedTabButtons(in: normalLayer)
-        var pairIndex = 0
 
-        for (idx, item) in tabBarItems.enumerated() {
-            guard isCustomTabItem(item, at: idx),
-                  pairIndex < glassLayerDisplayPairs.count,
-                  let source = contentView(for: item, at: idx) else { continue }
-            let pair = glassLayerDisplayPairs[pairIndex]
-            pairIndex += 1
+        for pair in glassLayerDisplayPairs {
+            let idx = pair.itemIndex
+            guard idx < tabBarItems.count, let source = contentView(for: tabBarItems[idx], at: idx) else { continue }
             if idx < selectedButtons.count {
-                replaceGlassDisplay(pair.selectedDisplay, replacing: selectedButtons[idx], source: source, selected: true)
+                installGlassDisplay(pair.selectedDisplay, in: selectedLayer, replacing: selectedButtons[idx], source: source, selected: true)
             }
             if idx < normalButtons.count {
-                replaceGlassDisplay(pair.normalDisplay, replacing: normalButtons[idx], source: source, selected: false)
+                installGlassDisplay(pair.normalDisplay, in: normalLayer, replacing: normalButtons[idx], source: source, selected: false)
             }
         }
     }
 
-    func replaceGlassDisplay(
+    func installGlassDisplay(
         _ display: ESTabBarItemContentView,
+        in layer: UIView,
         replacing tabButton: UIView,
         source: ESTabBarItemContentView,
         selected: Bool
     ) {
-        guard let layer = tabButton.superview else { return }
         display.syncVisualAppearance(from: source, displayAsSelected: selected)
         display.tag = Self.glassCustomContentTag
         display.isUserInteractionEnabled = false
         display.frame = tabButton.frame
         display.autoresizingMask = tabButton.autoresizingMask
         hideViewTree(tabButton)
-        if display.superview !== layer {
-            display.removeFromSuperview()
-            let index = layer.subviews.firstIndex(of: tabButton).map { $0 + 1 } ?? layer.subviews.count
-            layer.insertSubview(display, at: index)
-        }
+
+        guard display.superview !== layer else { return }
+        display.removeFromSuperview()
+        let insertIndex = layer.subviews.firstIndex(of: tabButton).map { $0 + 1 } ?? layer.subviews.count
+        layer.insertSubview(display, at: insertIndex)
         display.setNeedsLayout()
         display.layoutIfNeeded()
     }
@@ -545,13 +506,9 @@ private extension ESTabBar {
     }
 
     func syncGlassLayerDisplays(tabBarItems: [UITabBarItem]) {
-        var pairIndex = 0
-        for (idx, item) in tabBarItems.enumerated() {
-            guard isCustomTabItem(item, at: idx),
-                  pairIndex < glassLayerDisplayPairs.count,
-                  let source = contentView(for: item, at: idx) else { continue }
-            let pair = glassLayerDisplayPairs[pairIndex]
-            pairIndex += 1
+        for pair in glassLayerDisplayPairs {
+            let idx = pair.itemIndex
+            guard idx < tabBarItems.count, let source = contentView(for: tabBarItems[idx], at: idx) else { continue }
             pair.selectedDisplay.syncVisualAppearance(from: source, displayAsSelected: true)
             pair.normalDisplay.syncVisualAppearance(from: source, displayAsSelected: false)
         }
@@ -566,6 +523,15 @@ private extension ESTabBar {
         guard let platter = platterView() else { return nil }
         let frame = frameInTabBar(platter)
         return frame.isEmpty ? nil : frame
+    }
+
+    private func platterContentLayer(in platter: UIView, selected: Bool) -> UIView? {
+        if selected {
+            return platter.subviews.first { matchesSystemClassName($0, target: "SelectedContentView") }
+        }
+        return platter.subviews.first {
+            matchesSystemClassName($0, target: "ContentView") && !matchesSystemClassName($0, target: "SelectedContentView")
+        }
     }
 
     private func platterContentLayers(in platter: UIView) -> [UIView] {
@@ -583,25 +549,18 @@ private extension ESTabBar {
 
     private func layoutContainersFallback(buttonInfos: [TabBarButtonInfo]) {
         guard !containers.isEmpty else { return }
-        if buttonInfos.count >= containers.count {
-            let frames = buttonInfos.prefix(containers.count).map(\.frameInTabBar)
-            if frames.allSatisfy({ !$0.isEmpty }) {
-                applySlotFrames(Array(frames))
-                return
-            }
+        if let frames = buttonSlotFrames(from: buttonInfos) {
+            applySlotFrames(frames)
+            return
         }
-        let region = fallbackLayoutRegion(buttonInfos: buttonInfos)
+        let region = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height - safeAreaInsets.bottom)
         applySlotFrames(equalSlotFrames(in: region, count: containers.count))
     }
 
-    private func fallbackLayoutRegion(buttonInfos: [TabBarButtonInfo]) -> CGRect {
-        if buttonInfos.count >= containers.count {
-            let frames = buttonInfos.prefix(containers.count).map(\.frameInTabBar)
-            if frames.allSatisfy({ !$0.isEmpty }) {
-                return frames.reduce(frames[0]) { $0.union($1) }
-            }
-        }
-        return CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height - safeAreaInsets.bottom)
+    private func buttonSlotFrames(from buttonInfos: [TabBarButtonInfo]) -> [CGRect]? {
+        guard !containers.isEmpty, buttonInfos.count >= containers.count else { return nil }
+        let frames = buttonInfos.prefix(containers.count).map(\.frameInTabBar)
+        return frames.allSatisfy { !$0.isEmpty } ? Array(frames) : nil
     }
 
     private func hideSystemSelectionDecorations() {
@@ -658,19 +617,21 @@ internal extension ESTabBar {
 
         let usesGlass = isSystemGlassEffectActive
         for (idx, item) in tabBarItems.enumerated() {
-            let container = ESTabBarItemContainer(self, tag: 1000 + idx)
-            addSubview(container)
-            containers.append(container)
+            if usesGlass {
+                if isCustomTabItem(item, at: idx), let source = contentView(for: item, at: idx) {
+                    appendGlassLayerPair(from: source, at: idx)
+                }
+                continue
+            }
 
-            if usesGlass, let source = contentView(for: item, at: idx) {
-                appendGlassLayerPair(from: source)
-            } else {
-                if let item = item as? ESTabBarItem {
-                    container.addSubview(item.contentView)
-                }
-                if isMoreItem(idx), let moreContentView {
-                    container.addSubview(moreContentView)
-                }
+            let container = ESTabBarItemContainer(self, tag: 1000 + idx)
+            containers.append(container)
+            addSubview(container)
+            if let item = item as? ESTabBarItem {
+                container.addSubview(item.contentView)
+            }
+            if isMoreItem(idx), let moreContentView {
+                container.addSubview(moreContentView)
             }
         }
 
@@ -678,12 +639,12 @@ internal extension ESTabBar {
         setNeedsLayout()
     }
 
-    private func appendGlassLayerPair(from source: ESTabBarItemContentView) {
+    private func appendGlassLayerPair(from source: ESTabBarItemContentView, at index: Int) {
         glassLayerDisplayPairs.append(
             GlassLayerDisplayPair(
+                itemIndex: index,
                 selectedDisplay: makeGlassLayerDisplay(from: source),
-                normalDisplay: makeGlassLayerDisplay(from: source),
-                sourceContentView: source
+                normalDisplay: makeGlassLayerDisplay(from: source)
             )
         )
     }
@@ -695,18 +656,9 @@ internal extension ESTabBar {
         return display
     }
 
-    func performGlassHijackFeedback(at index: Int, animated: Bool) {
-        guard index >= 0, index < items?.count ?? 0 else { return }
-        if let item = items?[index] as? ESTabBarItem {
-            item.contentView.select(animated: animated) {
-                item.contentView.deselect(animated: false, completion: nil)
-            }
-        } else if isMoreItem(index) {
-            moreContentView?.select(animated: animated) {
-                self.moreContentView?.deselect(animated: animated, completion: nil)
-            }
-        }
-        syncGlassLayerDisplaysIfNeeded()
+    private func glassDisplay(for item: UITabBarItem, at index: Int) -> ESTabBarItemContentView? {
+        guard let pair = glassLayerDisplayPairs.first(where: { $0.itemIndex == index }) else { return nil }
+        return item == selectedItem ? pair.selectedDisplay : pair.normalDisplay
     }
 
     @objc func highlightAction(_ sender: AnyObject?) {
@@ -727,10 +679,10 @@ internal extension ESTabBar {
         let index = max(0, container.tag - 1000)
         guard index < items?.count ?? 0, let item = items?[index], item.isEnabled,
               customDelegate?.tabBar(self, shouldSelect: item) ?? true else { return }
-        if let cv = contentView(for: item, at: index) {
-            if highlight { cv.highlight(animated: true, completion: nil) }
-            else { cv.dehighlight(animated: true, completion: nil) }
-        }
+        guard let contentView = contentView(for: item, at: index) else { return }
+        highlight
+            ? contentView.highlight(animated: true, completion: nil)
+            : contentView.dehighlight(animated: true, completion: nil)
     }
 
     @objc func select(itemAtIndex idx: Int, animated: Bool) {
@@ -743,8 +695,8 @@ internal extension ESTabBar {
 
         if customDelegate?.tabBar(self, shouldHijack: item) ?? false {
             customDelegate?.tabBar(self, didHijack: item)
-            if animated, let cv = contentView(for: item, at: newIndex) {
-                cv.select(animated: true) { cv.deselect(animated: false, completion: nil) }
+            if animated, let contentView = contentView(for: item, at: newIndex) {
+                contentView.select(animated: true) { contentView.deselect(animated: false, completion: nil) }
             }
             return
         }
@@ -754,8 +706,8 @@ internal extension ESTabBar {
                 contentView(for: prev, at: currentIndex)?.deselect(animated: animated, completion: nil)
             }
             contentView(for: item, at: newIndex)?.select(animated: animated, completion: nil)
-        } else if let cv = contentView(for: item, at: newIndex) {
-            cv.reselect(animated: animated, completion: nil)
+        } else if let contentView = contentView(for: item, at: newIndex) {
+            contentView.reselect(animated: animated, completion: nil)
             popNavigationIfNeeded(animated: animated)
         }
 
@@ -778,28 +730,34 @@ internal extension ESTabBar {
     }
 
     func updateAccessibilityLabels() {
-        guard let tabBarItems = items, tabBarItems.count == containers.count else { return }
+        guard let tabBarItems = items else { return }
         for (idx, item) in tabBarItems.enumerated() {
-            let container = containers[idx]
-            container.accessibilityIdentifier = item.accessibilityIdentifier
-            container.accessibilityTraits = item.accessibilityTraits
-            if item == selectedItem {
-                container.accessibilityTraits.insert(.selected)
-            }
-            if let explicitLabel = item.accessibilityLabel {
-                container.accessibilityLabel = explicitLabel
-                container.accessibilityHint = item.accessibilityHint ?? container.accessibilityHint
-            } else {
-                var title = (item as? ESTabBarItem).flatMap { $0.accessibilityLabel ?? $0.title } ?? ""
-                if isMoreItem(idx) {
-                    title = NSLocalizedString("More_TabBarItem", bundle: Bundle(for: ESTabBarController.self), comment: "")
-                }
-                let key = item == selectedItem ? "TabBarItem_Selected_AccessibilityLabel" : "TabBarItem_AccessibilityLabel"
-                let format = NSLocalizedString(key, bundle: Bundle(for: ESTabBarController.self), comment: "")
-                container.accessibilityLabel = String(format: format, title, idx + 1, tabBarItems.count)
+            if isSystemGlassEffectActive, isCustomTabItem(item, at: idx), let display = glassDisplay(for: item, at: idx) {
+                configureAccessibility(for: display, item: item, at: idx, in: tabBarItems)
+            } else if idx < containers.count {
+                configureAccessibility(for: containers[idx], item: item, at: idx, in: tabBarItems)
             }
         }
     }
+
+    private func configureAccessibility(for view: UIView, item: UITabBarItem, at idx: Int, in tabBarItems: [UITabBarItem]) {
+        view.isAccessibilityElement = true
+        view.accessibilityIdentifier = item.accessibilityIdentifier
+        var traits = item.accessibilityTraits
+        if item == selectedItem { traits.insert(.selected) }
+        view.accessibilityTraits = traits
+
+        if let label = item.accessibilityLabel {
+            view.accessibilityLabel = label
+            view.accessibilityHint = item.accessibilityHint
+        } else {
+            var title = (item as? ESTabBarItem).flatMap { $0.accessibilityLabel ?? $0.title } ?? ""
+            if isMoreItem(idx) {
+                title = NSLocalizedString("More_TabBarItem", bundle: Bundle(for: ESTabBarController.self), comment: "")
+            }
+            let key = item == selectedItem ? "TabBarItem_Selected_AccessibilityLabel" : "TabBarItem_AccessibilityLabel"
+            let format = NSLocalizedString(key, bundle: Bundle(for: ESTabBarController.self), comment: "")
+            view.accessibilityLabel = String(format: format, title, idx + 1, tabBarItems.count)
+        }
+    }
 }
-
-

@@ -376,9 +376,10 @@ enum ExampleProvider {
         return navigationController
     }
     
+    // 不建议在玻璃效果下用拦截。试了hook解决了拦截，但是解决不了玻璃放大效果收回的问题，拦截后效果会被冻结到当前状态 所以去掉了hook代码保持原样，玻璃样式 直接使用 public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool { 拦截
     static func customIrregularityStyle(delegate: UITabBarControllerDelegate?) -> ExampleNavigationController {
         let tabBarController = ESTabBarController()
-//        tabBarController.delegate = delegate
+        tabBarController.delegate = delegate
         tabBarController.title = "Irregularity"
 //        tabBarController.tabBar.shadowImage = UIImage(named: "transparent")
 //        tabBarController.tabBar.backgroundImage = UIImage(named: "background_dark")
