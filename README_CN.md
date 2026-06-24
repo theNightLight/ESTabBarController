@@ -1,11 +1,11 @@
 ![ESTabBarController](logo.png)
 
-[![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-orange.svg)](#swift-package-manager)
-[![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![CocoaPods](https://img.shields.io/cocoapods/v/ESTabBarController-swift.svg)](http://cocoapods.org/pods/ESTabBarController-swift)
 [![Swift v5](https://img.shields.io/badge/Swift-5-orange.svg?style=flat)](https://developer.apple.com/swift/)
+[![GitHub](https://img.shields.io/badge/GitHub-theNightLight-blue.svg?style=flat)](https://github.com/theNightLight)
 
 ### [For English](README.md)
+
+> **说明**：本项目为 [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController) 的个人维护分支，主要新增 iOS 26 Liquid Glass 适配。**不提供 CocoaPods / Swift Package Manager 集成**，以免影响上游官方发布；请通过下载源码手动集成。
 
 **ESTabBarController**是一个高度自定义的TabBarController组件，继承自UITabBarController。
 
@@ -61,23 +61,41 @@ if let tabBar = tabBarController.tabBar as? ESTabBar {
 
 ## 如何安装
 
-### CocoaPods
+本项目**仅支持源码下载 / 手动集成**，不使用 CocoaPods 与 Swift Package Manager。
 
-``` ruby
-pod "ESTabBarController-swift"
+### 下载源码
+
+```bash
+git clone https://github.com/theNightLight/ESTabBarController.git
+cd ESTabBarController
+open ESTabBarControllerExample/ESTabBarControllerExample.xcodeproj
 ```
 
-### Carthage
+### 集成到你的工程
 
-```ruby
-github "eggswift/ESTabBarController"
-```
+1. 将 `ESTabBarControllerExample/ESTabBarControllerExample/Sources/` 目录下的 Swift 文件拖入你的 Xcode 工程。
+2. 在需要使用的地方 `import` 对应模块（若作为 App Target 源码集成则无需额外 import）。
+3. 将 `ESTabBarController` 作为根控制器使用，参考 Example 工程中的用法。
 
-### 手动安装
+> 如需使用上游官方 CocoaPods / SPM，请访问 [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController)。
 
-``` ruby
-git clone https://github.com/eggswift/ESTabBarController.git
-open ESTabBarController
+## 发布到 GitHub
+
+在 [theNightLight/ESTabBarController](https://github.com/theNightLight/ESTabBarController) 创建公开仓库后，建议配置：
+
+| 项 | 建议内容 |
+|----|----------|
+| **Description** | 在 ESTabBarController 基础上增加 iOS 26 玻璃效果（Liquid Glass）兼容，支持高度自定义 TabBar，源码手动集成 |
+| **Topics** | `swift` `ios` `uikit` `tabbar` `tabbarcontroller` `liquid-glass` |
+| **Issues** | 开启，便于反馈问题 |
+| **Releases** | 按 [CHANGELOG.md](CHANGELOG.md) 打 tag，如 `v3.0.0` |
+
+推送命令示例：
+
+```bash
+git remote add github https://github.com/theNightLight/ESTabBarController.git
+git push -u github main
+git tag v3.0.0 && git push github v3.0.0
 ```
 
 ## 未完成的事
@@ -105,23 +123,20 @@ open ESTabBarController
 
 ## 关于
 
-ESTabBarController是由[lihao](mailto:lihao_iOS@hotmail.com)开发和维护。如果你在使用过程中遇到什么疑问或任何问题，欢迎提交 [issue](https://github.com/eggswift/ESTabBarController/issues) 随时交流。</br>
-如果你想为ESTabBarController输出代码，请提交 [Pull Request](https://github.com/eggswift/ESTabBarController/pulls)，我会尽可能快的去处理。</br>
+本项目由 [haochen](https://github.com/theNightLight) 维护。如有问题或建议，欢迎提交 [Issue](https://github.com/theNightLight/ESTabBarController/issues) 或 [Pull Request](https://github.com/theNightLight/ESTabBarController/pulls)。
 
-[![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=https://github.com/eggswift/ESTabBarController)
-[![Twitter Follow](https://img.shields.io/twitter/follow/lihao_ios.svg?style=social)](https://twitter.com/lihao_iOS)
+## 更新日志
+
+详见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 
 The MIT License (MIT)
 
-Copyright (c) 2013-2016 eggswift. All rights reserved.
+Copyright (c) 2013-2016 eggswift  
+Copyright (c) 2026 haochen
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+完整许可证文本见 [LICENSE](LICENSE)。
 
 ## 原作者
 

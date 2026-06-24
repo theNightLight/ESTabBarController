@@ -1,14 +1,11 @@
 ![ESTabBarController](logo.png)
 
-[![SwiftPM compatible](https://img.shields.io/badge/SwiftPM-compatible-orange.svg)](#swift-package-manager)
-[![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![CocoaPods](https://img.shields.io/cocoapods/v/ESTabBarController-swift.svg)](http://cocoapods.org/pods/ESTabBarController-swift)
 [![Swift v5](https://img.shields.io/badge/Swift-5-orange.svg?style=flat)](https://developer.apple.com/swift/)
-[![Twitter](https://img.shields.io/badge/Twitter-@lihao_iOS-blue.svg?style=flat)](https://twitter.com/lihao_iOS)
-[![Twitter](https://img.shields.io/badge/Weibo-@李昊_____-orange.svg?style=flat)](http://weibo.com/5120522686/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1)
-[![Chat Gitter.im](https://badges.gitter.im/ESTabBarController/Lobby.svg)](https://gitter.im/ESTabBarController/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub](https://img.shields.io/badge/GitHub-theNightLight-blue.svg?style=flat)](https://github.com/theNightLight)
 
 ### [中文介绍](README_CN.md)
+
+> **Note:** This is a community fork of [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController) with iOS 26 Liquid Glass support. **CocoaPods / Swift Package Manager are not provided** here to avoid conflicting with the upstream release. Please integrate by downloading the source code.
 
 **ESTabBarController** is a highly customizable TabBarController component, which is inherited from UITabBarController.
 
@@ -64,33 +61,40 @@ if let tabBar = tabBarController.tabBar as? ESTabBar {
 
 ## Usage
 
-### Swift Package Manager
+This fork supports **source download / manual integration only**. CocoaPods and Swift Package Manager are intentionally not published.
 
-```
-...
-dependencies: [
-    .package(name: "ESTabBarController", url: "https://github.com/eggswift/ESTabBarController.git", from: "2.9.0-spm")
-]
-...
-```
+### Download
 
-### CocoaPods
-
-``` ruby
-pod "ESTabBarController-swift"
+```bash
+git clone https://github.com/theNightLight/ESTabBarController.git
+cd ESTabBarController
+open ESTabBarControllerExample/ESTabBarControllerExample.xcodeproj
 ```
 
-### Carthage
+### Integrate into your project
 
-```ruby
-github "eggswift/ESTabBarController"
-```
+1. Drag all Swift files from `ESTabBarControllerExample/ESTabBarControllerExample/Sources/` into your Xcode target.
+2. Use `ESTabBarController` as your root controller — see the Example project for reference.
 
-### Manually
+> For official CocoaPods / SPM from upstream, use [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController).
 
-``` ruby
-git clone https://github.com/eggswift/ESTabBarController.git
-open ESTabBarController
+## Publish to GitHub
+
+After creating [theNightLight/ESTabBarController](https://github.com/theNightLight/ESTabBarController), recommended settings:
+
+| Item | Suggestion |
+|------|------------|
+| **Description** | Fork of ESTabBarController with iOS 26 Liquid Glass compatibility — customizable TabBar, manual source integration |
+| **Topics** | `swift` `ios` `uikit` `tabbar` `tabbarcontroller` `liquid-glass` |
+| **Issues** | Enable for bug reports and feature requests |
+| **Releases** | Tag releases per [CHANGELOG.md](CHANGELOG.md), e.g. `v3.0.0` |
+
+Push example:
+
+```bash
+git remote add github https://github.com/theNightLight/ESTabBarController.git
+git push -u github main
+git tag v3.0.0 && git push github v3.0.0
 ```
 
 ## TODO
@@ -118,24 +122,20 @@ If this project helps you, consider buying me a coffee:
 
 ## About
 
-ESTabBarController is developed and maintained by [Vincent Li](mailto:lihao_iOS@hotmail.com). If you have any questions or issues in using ESTabBarController, welcome to [issue](https://github.com/eggswift/ESTabBarController/issues). </br>
-If you want to contribute to ESTabBarController, Please submit [Pull Request](https://github.com/eggswift/ESTabBarController/pulls), I will deal with it as soon as possible. </br>
+Maintained by [haochen](https://github.com/theNightLight). Questions and contributions welcome via [Issues](https://github.com/theNightLight/ESTabBarController/issues) and [Pull Requests](https://github.com/theNightLight/ESTabBarController/pulls).
 
-[![Twitter URL](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=https://github.com/eggswift/ESTabBarController)
-[![Twitter Follow](https://img.shields.io/twitter/follow/lihao_ios.svg?style=social)](https://twitter.com/lihao_iOS)
+## Changelog
 
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
 The MIT License (MIT)
 
-Copyright (c) 2013-2016 eggswift. All rights reserved.
+Copyright (c) 2013-2016 eggswift  
+Copyright (c) 2026 haochen
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+See [LICENSE](LICENSE) for the full text.
 
 ## Original Author
 
