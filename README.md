@@ -9,6 +9,13 @@
 
 **ESTabBarController** is a highly customizable TabBarController component, which is inherited from UITabBarController.
 
+This fork adds iOS 26 layout properties on `ESTabBar`. **Defaults work out of the box:**
+
+- **`designType`** (default `.automatic`): `.automatic` adapts layout by OS version; `.old` always uses legacy TabBar layout (hides platter and distributes tabs evenly on iOS 26+)
+- **`usesSystemGlassEffect`** (default `true`): effective only when `designType == .automatic` on iOS 26+; `true` enables system Liquid Glass dual-layer embedding, `false` hides system buttons and uses full-width `ESTabBarItemContainer` layout
+
+**Default behavior:** with no configuration, iOS 26 shows the system glass TabBar; iOS 18 and below match upstream legacy layout.
+
 ### Why?
 
 In real-world development, we may encounter the situation of customizing the UITabBar. For instance: change font style, add animation, and use bigger items. However it's hard to do with UITabBarItem.
@@ -27,7 +34,7 @@ In real-world development, we may encounter the situation of customizing the UIT
 8| Default notification style |  You can get a system-like notification style by initializing the TabBar with ESTabBarController directly. </p> UITabBarController notification style: </p> ![enter image description here](Resources/SystemNotificationStyle.png) </p> ESTabBarController system-like notification style: </p> ![enter image description here](Resources/CustomNotificationStyle.png)
 9| Customizable notification style | With ESTabBarController, you can：</p> 1. Customize notification animation: </p> ![enter image description here](Resources/CustomNofticationGif.gif) </p> ![enter image description here](Resources/CustomNofticationGif2.gif) </p> 2. Customize prompt style: </p> ![enter image description here](Resources/CustomNofticationGif3.gif) </p> 3. And much more ... </p>
 10| Lottie | Through customizing ContentView, you are able to add Lottie's LAAnimationView to Item(s) </p> ![enter image description here](Resources/LottieGif.gif)
-11| iOS 26 Liquid Glass | iOS 26 introduces Liquid Glass on the system TabBar. ESTabBarController adapts via `designType` and `usesSystemGlassEffect` (iOS 26+):</p> 1. **System glass** (default): `designType = .automatic`, `usesSystemGlassEffect = true`. Custom items embed into the system `_UITabBarPlatterView` dual-layer structure, preserving system glass compositing and selection animation.</p> ![System glass mode](Resources/systemAndGlass.gif) </p> 2. **Custom container**: `designType = .automatic`, `usesSystemGlassEffect = false`. Hides system buttons and lays out `ESTabBarItemContainer` across the full width for fully custom appearance.</p> ![No system glass mode](Resources/systemNoGlass.gif) </p> 3. **Mandatory old design**: `designType = .old`. Always uses legacy layout; on iOS 26+ hides the platter and distributes tabs evenly, matching pre-iOS 26 behavior.</p> ![Mandatory old design](Resources/mandatoryOldDesign.gif)
+11| iOS 26 Liquid Glass | iOS 26 introduces Liquid Glass on the system TabBar. ESTabBarController adapts via `designType` and `usesSystemGlassEffect` (iOS 26+):</p> 1. **System glass** (default): `designType = .automatic`, `usesSystemGlassEffect = true`. Custom items embed into the system `_UITabBarPlatterView` dual-layer structure, preserving system glass compositing and selection animation.</p> ![System glass mode](Resources/systemAndGlass.gif) </p> 2. **Custom container**: `designType = .automatic`, `usesSystemGlassEffect = false`. Hides system buttons and lays out `ESTabBarItemContainer` across the full width for fully custom appearance.</p> ![No system glass mode](Resources/systemNoGlass.gif) </p> 3. **Mandatory old design**: `designType = .old`. Always uses legacy layout; on iOS 26+ hides the platter and distributes tabs evenly, matching pre-iOS 26 behavior.</p> ![Mandatory old design](Resources/mandatoryOldDesign.gif) </p> 4. **System glass + Badge**: Badges show on unselected items in glass mode; the selected item hides its badge automatically.</p> ![System glass with badge](Resources/systemWithBadgeAndGlass.gif)
 
 ## Requirements
 
@@ -38,7 +45,7 @@ In real-world development, we may encounter the situation of customizing the UIT
 
 ## Demo
 
-You can download and build ESTabBarControllerExample project, and you will find more examples to use ESTabBarController, and also more examples to customize UITabBar. The Basic section includes the three iOS 26 layout modes above.
+You can download and build ESTabBarControllerExample project, and you will find more examples to use ESTabBarController, and also more examples to customize UITabBar. The Basic section includes the iOS 26 layout modes above.
 
 ### iOS 26 Liquid Glass
 

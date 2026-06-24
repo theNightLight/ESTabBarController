@@ -13,7 +13,7 @@
 - 新增 `ESTabBarDesignType`（`.automatic` / `.old`）
 - 新增 `usesSystemGlassEffect` 属性
 - Example：`mandatoryOldDesignStyle()` 强制旧版 UI 示例
-- README 演示 GIF：`systemAndGlass`、`systemNoGlass`、`mandatoryOldDesign`
+- README 演示 GIF：`systemAndGlass`、`systemNoGlass`、`mandatoryOldDesign`、`systemWithBadgeAndGlass`
 
 ### Changed
 

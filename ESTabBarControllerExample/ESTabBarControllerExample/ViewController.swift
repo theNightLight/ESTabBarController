@@ -27,6 +27,7 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             "UITabBarController style with non-zero default index",
             "ESTabBarController style with non-zero default index",
             "ESTabBarController style Mandatory Old Design",
+            "ESTabBarController style with GlassEffect and Badge",
         ],
         [
             "ESTabBarController embeds the UINavigationController style",
@@ -71,6 +72,7 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             "默认index非0的UITabBarController样式",
             "默认index非0的ESTabBarController样式",
             "ESTabBarController 强制使用旧版本UI",
+            "ESTabBarController 玻璃效果 + Badge",
         ],
         [
             "UINavigationController内嵌UITabBarController样式",
@@ -185,6 +187,8 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
                 let tabBarController = ExampleProvider.mandatoryOldDesignStyle()
                 self.present(tabBarController, animated: true, completion: nil)
                 tabBarController.selectedIndex = 2
+            case 11:
+                self.present(ExampleProvider.customGlassWithBadgeStyle(), animated: true, completion: nil)
             default:
                 break
             }

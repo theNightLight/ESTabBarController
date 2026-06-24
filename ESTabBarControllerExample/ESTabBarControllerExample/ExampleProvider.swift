@@ -93,8 +93,44 @@ enum ExampleProvider {
         
         return tabBarController
     }
-    
-    
+
+    static func customGlassWithBadgeStyle() -> ExampleGlassTabbarController {
+        let tabBarController = ExampleGlassTabbarController()
+        let v1 = ExampleViewController()
+        let v2 = ExampleViewController()
+        let v3 = ExampleViewController()
+        let v4 = ExampleViewController()
+        let v5 = ExampleViewController()
+
+        v1.tabBarItem = ESTabBarItem.init(title: "Home", image: UIImage(named: "home"), selectedImage: UIImage(named: "home_1"))
+        v2.tabBarItem = ESTabBarItem.init(title: "Find", image: UIImage(named: "find"), selectedImage: UIImage(named: "find_1"))
+        v3.tabBarItem = ESTabBarItem.init(title: "Photo", image: UIImage(named: "photo"), selectedImage: UIImage(named: "photo_1"))
+        v4.tabBarItem = ESTabBarItem.init(title: "Favor", image: UIImage(named: "favor"), selectedImage: UIImage(named: "favor_1"))
+        v5.tabBarItem = ESTabBarItem.init(title: "Me", image: UIImage(named: "me"), selectedImage: UIImage(named: "me_1"))
+
+        if let tabBarItem = v1.tabBarItem as? ESTabBarItem {
+            tabBarItem.badgeValue = "New"
+        }
+        if let tabBarItem = v2.tabBarItem as? ESTabBarItem {
+            tabBarItem.badgeValue = "99+"
+        }
+        if let tabBarItem = v3.tabBarItem as? ESTabBarItem {
+            tabBarItem.badgeValue = "1"
+            tabBarItem.badgeColor = UIColor.blue
+        }
+        if let tabBarItem = v4.tabBarItem as? ESTabBarItem {
+            tabBarItem.badgeValue = ""
+        }
+        if let tabBarItem = v5.tabBarItem as? ESTabBarItem {
+            tabBarItem.badgeValue = nil
+        }
+
+        tabBarController.viewControllers = [v1, v2, v3, v4, v5]
+
+        return tabBarController
+    }
+
+
     static func customGlassMoreStyle() -> ExampleGlassTabbarController {
         let tabBarController = ExampleGlassTabbarController()
         let v1 = ExampleViewController()
