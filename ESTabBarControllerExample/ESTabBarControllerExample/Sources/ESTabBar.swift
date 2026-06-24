@@ -141,6 +141,7 @@ open class ESTabBar: UITabBar {
             $0.point(inside: CGPoint(x: point.x - $0.frame.origin.x, y: point.y - $0.frame.origin.y), with: event)
         }
     }
+    
 }
 
 // MARK: - Layout
@@ -420,6 +421,7 @@ internal extension ESTabBar {
 @available(iOS 26.0, *)
 private extension ESTabBar {
 
+    
     func updateLayoutForLiquidGlass(tabBarItems: [UITabBarItem]) {
         let buttonInfos = systemTabBarButtonInfos()
 
@@ -735,7 +737,9 @@ internal extension ESTabBar {
         let newIndex = max(0, idx)
         let currentIndex = selectedItem.flatMap { items?.firstIndex(of: $0) } ?? -1
         guard newIndex < items?.count ?? 0, let item = items?[newIndex], item.isEnabled,
-              customDelegate?.tabBar(self, shouldSelect: item) ?? true else { return }
+              customDelegate?.tabBar(self, shouldSelect: item) ?? true else {
+            return
+        }
 
         if customDelegate?.tabBar(self, shouldHijack: item) ?? false {
             customDelegate?.tabBar(self, didHijack: item)
@@ -797,3 +801,5 @@ internal extension ESTabBar {
         }
     }
 }
+
+

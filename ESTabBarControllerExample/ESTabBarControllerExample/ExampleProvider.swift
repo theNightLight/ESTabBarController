@@ -378,10 +378,13 @@ enum ExampleProvider {
     
     static func customIrregularityStyle(delegate: UITabBarControllerDelegate?) -> ExampleNavigationController {
         let tabBarController = ESTabBarController()
-        tabBarController.delegate = delegate
+//        tabBarController.delegate = delegate
         tabBarController.title = "Irregularity"
-        tabBarController.tabBar.shadowImage = UIImage(named: "transparent")
-        tabBarController.tabBar.backgroundImage = UIImage(named: "background_dark")
+//        tabBarController.tabBar.shadowImage = UIImage(named: "transparent")
+//        tabBarController.tabBar.backgroundImage = UIImage(named: "background_dark")
+        if let tabBar = tabBarController.tabBar as? ESTabBar {
+            tabBar.itemCustomPositioning = .fillIncludeSeparator
+        }
         tabBarController.shouldHijackHandler = {
             tabbarController, viewController, index in
             if index == 2 {
