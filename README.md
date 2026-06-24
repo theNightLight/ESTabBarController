@@ -14,7 +14,7 @@ This fork adds iOS 26 layout properties on `ESTabBar`. **Defaults work out of th
 - **`designType`** (default `.automatic`): `.automatic` adapts layout by OS version; `.old` always uses legacy TabBar layout (hides platter and distributes tabs evenly on iOS 26+)
 - **`usesSystemGlassEffect`** (default `true`): effective only when `designType == .automatic` on iOS 26+; `true` enables system Liquid Glass dual-layer embedding, `false` hides system buttons and uses full-width `ESTabBarItemContainer` layout
 
-**Default behavior:** with no configuration, iOS 26 shows the system glass TabBar; iOS 18 and below match upstream legacy layout.
+**Default behavior:** with no configuration, iOS 26 shows the system glass TabBar; below iOS 26 matches upstream legacy layout.
 
 ### Why?
 

@@ -14,7 +14,7 @@
 - **`designType`**（默认 `.automatic`）：`.automatic` 随系统版本自动适配布局；`.old` 全版本强制使用传统 TabBar 布局（iOS 26+ 隐藏 platter、全宽均分）
 - **`usesSystemGlassEffect`**（默认 `true`）：仅当 `designType == .automatic` 且在 iOS 26+ 生效；`true` 启用系统 Liquid Glass 双层嵌入，`false` 隐藏系统按钮、改用 `ESTabBarItemContainer` 全宽自定义布局
 
-**默认效果**：不修改任何配置时，iOS 26 自动呈现系统玻璃 TabBar；iOS 18 及以下与 upstream 一致，走传统布局。
+**默认效果**：不修改任何配置时，iOS 26 自动呈现系统玻璃 TabBar；iOS 26 以下与 upstream 一致，走传统布局。
 
 ### 为什么要使用?
 
@@ -34,7 +34,7 @@
 8| 支持默认通知样式 | 如果直接使用ESTabBarController进行初始化，你会得到与UITabBarController完全相同的仿系统通知样式 </p> UITabBarController样式: </p> ![enter image description here](Resources/SystemNotificationStyle.png) </p> ESTabBarController仿系统样式: </p> ![enter image description here](Resources/CustomNotificationStyle.png)
 9| 支持自定义通知样式 | 使用ESTabBarController可以实现：</p> 1. 自定义提醒动画 </p> ![enter image description here](Resources/CustomNofticationGif.gif) </p> ![enter image description here](Resources/CustomNofticationGif2.gif) </p> 2. 自定义提醒样式 </p> ![enter image description here](Resources/CustomNofticationGif3.gif) </p> 3. 等等...... </p>
 10| 支持Lottie | 通过自定义ContentView，能够添加Lottie的LAAnimationView到Item </p> ![enter image description here](Resources/LottieGif.gif)
-11| 支持 iOS 26 Liquid Glass 适配 | iOS 26 系统 TabBar 引入 Liquid Glass 效果。ESTabBarController 通过 `designType` 与 `usesSystemGlassEffect` 提供三种布局策略（需 iOS 26+）：</p> 1. **系统玻璃模式**（默认）：`designType = .automatic`，`usesSystemGlassEffect = true`。自定义 item 嵌入系统 `_UITabBarPlatterView` 双层结构，保留系统玻璃合成与选中动画。</p> ![系统玻璃模式](Resources/systemAndGlass.gif) </p> 2. **自定义容器模式**：`designType = .automatic`，`usesSystemGlassEffect = false`。隐藏系统按钮，使用 `ESTabBarItemContainer` 全宽均分布局，适合完全自定义外观。</p> ![无系统玻璃模式](Resources/systemNoGlass.gif) </p> 3. **强制旧版布局**：`designType = .old`。全版本走传统布局；iOS 26+ 隐藏 platter，Tab 项全宽均分，与 iOS 18 及以下表现一致。</p> ![强制旧版布局](Resources/mandatoryOldDesign.gif) </p> 4. **系统玻璃 + Badge**：玻璃模式下未选中 item 显示 badge，选中项自动隐藏 badge。</p> ![系统玻璃 + Badge](Resources/systemWithBadgeAndGlass.gif)
+11| 支持 iOS 26 Liquid Glass 适配 | iOS 26 系统 TabBar 引入 Liquid Glass 效果。ESTabBarController 通过 `designType` 与 `usesSystemGlassEffect` 提供三种布局策略（需 iOS 26+）：</p> 1. **系统玻璃模式**（默认）：`designType = .automatic`，`usesSystemGlassEffect = true`。自定义 item 嵌入系统 `_UITabBarPlatterView` 双层结构，保留系统玻璃合成与选中动画。</p> ![系统玻璃模式](Resources/systemAndGlass.gif) </p> 2. **自定义容器模式**：`designType = .automatic`，`usesSystemGlassEffect = false`。隐藏系统按钮，使用 `ESTabBarItemContainer` 全宽均分布局，适合完全自定义外观。</p> ![无系统玻璃模式](Resources/systemNoGlass.gif) </p> 3. **强制旧版布局**：`designType = .old`。全版本走传统布局；iOS 26+ 隐藏 platter，Tab 项全宽均分，与 iOS 26 以下表现一致。</p> ![强制旧版布局](Resources/mandatoryOldDesign.gif) </p> 4. **系统玻璃 + Badge**：玻璃模式下未选中 item 显示 badge，选中项自动隐藏 badge。</p> ![系统玻璃 + Badge](Resources/systemWithBadgeAndGlass.gif)
 
 ## 支持环境
 
