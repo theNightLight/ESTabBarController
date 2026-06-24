@@ -85,25 +85,6 @@ open ESTabBarControllerExample/ESTabBarControllerExample.xcodeproj
 
 > For official CocoaPods / SPM from upstream, use [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController).
 
-## Publish to GitHub
-
-After creating [theNightLight/ESTabBarController](https://github.com/theNightLight/ESTabBarController), recommended settings:
-
-| Item | Suggestion |
-|------|------------|
-| **Description** | Fork of ESTabBarController with iOS 26 Liquid Glass compatibility — customizable TabBar, manual source integration |
-| **Topics** | `swift` `ios` `uikit` `tabbar` `tabbarcontroller` `liquid-glass` |
-| **Issues** | Enable for bug reports and feature requests |
-| **Releases** | Tag releases per [CHANGELOG.md](CHANGELOG.md), e.g. `v3.0.0` |
-
-Push example:
-
-```bash
-git remote add github https://github.com/theNightLight/ESTabBarController.git
-git push -u github main
-git tag v3.0.0 && git push github v3.0.0
-```
-
 ## TODO
 
 1. The Containers' layout is purely based on code，using Autolayout will be better.

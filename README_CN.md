@@ -86,25 +86,6 @@ open ESTabBarControllerExample/ESTabBarControllerExample.xcodeproj
 
 > 如需使用上游官方 CocoaPods / SPM，请访问 [eggswift/ESTabBarController](https://github.com/eggswift/ESTabBarController)。
 
-## 发布到 GitHub
-
-在 [theNightLight/ESTabBarController](https://github.com/theNightLight/ESTabBarController) 创建公开仓库后，建议配置：
-
-| 项 | 建议内容 |
-|----|----------|
-| **Description** | 在 ESTabBarController 基础上增加 iOS 26 玻璃效果（Liquid Glass）兼容，支持高度自定义 TabBar，源码手动集成 |
-| **Topics** | `swift` `ios` `uikit` `tabbar` `tabbarcontroller` `liquid-glass` |
-| **Issues** | 开启，便于反馈问题 |
-| **Releases** | 按 [CHANGELOG.md](CHANGELOG.md) 打 tag，如 `v3.0.0` |
-
-推送命令示例：
-
-```bash
-git remote add github https://github.com/theNightLight/ESTabBarController.git
-git push -u github main
-git tag v3.0.0 && git push github v3.0.0
-```
-
 ## 未完成的事
 
 1. Containers的布局方式目前是纯代码布局，使用Autolayout应该会更好。
