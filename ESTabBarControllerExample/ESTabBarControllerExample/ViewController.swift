@@ -349,6 +349,7 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
         let second = tabBarController.viewControllers![secondIndex]
         (first.tabBarItem, second.tabBarItem) = (second.tabBarItem, first.tabBarItem)
     }
+    
 
     private func performPhotoTabSwap(in tabBarController: UITabBarController, selectedIndex: Int) {
         guard let swap = pendingViewControllerSwap else { return }
