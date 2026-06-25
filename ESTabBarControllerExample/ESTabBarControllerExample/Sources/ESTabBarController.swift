@@ -102,8 +102,8 @@ open class ESTabBarController: UITabBarController, ESTabBarDelegate {
                 revertTabBarVisualSelection()
                 return
             }
-            super.selectedIndex = newValue
             tabBar.select(itemAtIndex: value, animated: false)
+            super.selectedIndex = newValue
         }
     }
 
