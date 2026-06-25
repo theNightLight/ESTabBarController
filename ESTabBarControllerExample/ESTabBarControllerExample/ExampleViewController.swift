@@ -33,24 +33,24 @@ public class ExampleViewController: UIViewController {
         "Until you make peace with who you are, you’ll never be content with what you have.",
         "Keep trying no matter how hard it seems. it will get easier."
     ]
-    static var index = 0
     
     let tip: UILabel = UILabel()
     let icon: UIButton = UIButton()
     let button: UIButton = UIButton()
-    
+    private var textTimer: Timer?
+
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.init(red: 244.0 / 255.0, green: 245.0 / 255.0, blue: 245.0 / 255.0, alpha: 1.0)
-        
-        tip.textColor = UIColor.gray
-        tip.text = ExampleViewController.textArray[ExampleViewController.index]
-        ExampleViewController.index = (ExampleViewController.index < ExampleViewController.textArray.count - 1) ? ExampleViewController.index + 1 : 0
-        tip.numberOfLines = -1
+
+        tip.font = UIFont.systemFont(ofSize: 24, weight: .medium)
+        tip.textColor = UIColor.darkGray
+        tip.text = randomTipText(excluding: nil)
+        tip.numberOfLines = 0
         tip.textAlignment = .center
-        
+
         icon.addTarget(self, action: #selector(ExampleViewController.homePageAction), for: .touchUpInside)
-        
+
         button.setTitle("  Click to pop or dismiss  ", for: .normal)
         button.backgroundColor = self.view.backgroundColor
         button.layer.borderWidth = 2
@@ -58,16 +58,63 @@ public class ExampleViewController: UIViewController {
         button.layer.cornerRadius = 16.0
         button.setTitleColor(UIColor(white: 100.0 / 255.0, alpha: 1.0), for: .normal)
         button.addTarget(self, action: #selector(ExampleViewController.backAction), for: .touchUpInside)
-        
+
         view.addSubview(icon)
         view.addSubview(tip)
         view.addSubview(button)
+    }
+
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        startTextTimer()
+    }
+
+    deinit {
+        stopTextTimer()
+    }
+
+    private func startTextTimer() {
+        stopTextTimer()
+        textTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+            self?.advanceTipText()
+        }
+    }
+
+    private func stopTextTimer() {
+        textTimer?.invalidate()
+        textTimer = nil
+    }
+
+    private func advanceTipText() {
+        tip.text = randomTipText(excluding: tip.text)
+        view.setNeedsLayout()
+    }
+
+    private func randomTipText(excluding current: String?) -> String {
+        guard ExampleViewController.textArray.count > 1 else {
+            return ExampleViewController.textArray.first ?? ""
+        }
+        var next = ExampleViewController.textArray.randomElement() ?? ""
+        while next == current {
+            next = ExampleViewController.textArray.randomElement() ?? next
+        }
+        return next
     }
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         icon.frame = self.view.bounds
-        tip.frame = self.view.bounds.insetBy(dx: 12, dy: 0)
+
+        let horizontalPadding: CGFloat = 24
+        let labelWidth = view.bounds.width - horizontalPadding * 2
+        let labelSize = tip.sizeThatFits(CGSize(width: labelWidth, height: .greatestFiniteMagnitude))
+        tip.frame = CGRect(
+            x: horizontalPadding,
+            y: (view.bounds.height - labelSize.height) / 2 - 24,
+            width: labelWidth,
+            height: labelSize.height
+        )
+
         let size = button.sizeThatFits(self.view.bounds.size)
         button.frame = CGRect.init(x: (self.view.bounds.size.width - size.width) / 2.0, y: self.view.bounds.size.height - 120, width: size.width, height: 42.0)
     }

@@ -9,16 +9,12 @@
 import Foundation
 import UIKit
 
-public class ExampleGlassTabbarController: ESTabBarController {
+public class ExampleInvisibleController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        if let tabbar = self.tabBar as? ESTabBar {
-            tabbar.usesSystemGlassEffect = true
-        }
-//        self.tabBar.alpha = 0
+        self.view.alpha = 0
     }
-    
     
     
 }

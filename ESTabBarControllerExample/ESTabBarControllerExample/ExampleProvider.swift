@@ -29,6 +29,44 @@ enum ExampleProvider {
         
         return tabBarController
     }
+
+    static func systemTabStyle() -> UITabBarController {
+        let tabBarController = UITabBarController()
+
+        if #available(iOS 18.0, *) {
+            let tab1 = UITab(title: "Home", image: UIImage(named: "home"), identifier: "Home") { _ in
+                return ExampleViewController()
+            }
+            let tab2 = UITab(title: "Find", image: UIImage(named: "find"), identifier: "find") { _ in
+                return ExampleViewController()
+            }
+            let tab3 = UITab(title: "Photo", image: UIImage(named: "photo"), identifier: "photo") { _ in
+                return ExampleViewController()
+            }
+            let tab4 = UITab(title: "Favor", image: UIImage(named: "favor"), identifier: "favor") { _ in
+                return ExampleViewController()
+            }
+            let tab5 = UITab(title: "Me", image: UIImage(named: "home"), identifier: "Home") { _ in
+                return ExampleViewController()
+            }
+            let tab6 = UITab(title: "Message", image: UIImage(named: "message"), identifier: "message") { _ in
+                return ExampleViewController()
+            }
+            let tab7 = UITab(title: "Shop", image: UIImage(named: "shop"), identifier: "shop") { _ in
+                return ExampleViewController()
+            }
+            let tab8 = UITab(title: "Cardboard", image: UIImage(named: "cardboard"), identifier: "cardboard") { _ in
+                return ExampleViewController()
+            }
+
+            tabBarController.tabs = [tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8]
+            tabBarController.selectedTab = tab4
+        }
+
+        tabBarController.tabBar.shadowImage = nil
+
+        return tabBarController
+    }
     
     static func customStyle() -> ESTabBarController {
         let tabBarController = ESTabBarController()
@@ -79,7 +117,7 @@ enum ExampleProvider {
         let tabBarController = ExampleGlassTabbarController()
         let v1 = ExampleViewController()
         let v2 = ExampleViewController()
-        let v3 = ExampleViewController()
+        let v3 = UIViewController()
         let v4 = ExampleViewController()
         let v5 = ExampleViewController()
         
@@ -179,7 +217,7 @@ enum ExampleProvider {
         let tabBarController = UITabBarController()
         let v1 = ExampleViewController()
         let v2 = ExampleViewController()
-        let v3 = ExampleViewController()
+        let v3 = UIViewController()
         let v4 = ExampleViewController()
         let v5 = ExampleViewController()
         let v6 = ExampleViewController()
@@ -196,7 +234,7 @@ enum ExampleProvider {
         v8.tabBarItem = UITabBarItem.init(title: "Cardboard", image: UIImage(named: "cardboard"), selectedImage: UIImage(named: "cardboard_1"))
         
         tabBarController.viewControllers = [v1, v2, v3, v4, v5, v6, v7, v8]
-        
+        tabBarController.selectedIndex = 2
         return tabBarController
     }
     

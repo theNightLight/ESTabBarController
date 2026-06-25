@@ -383,7 +383,15 @@ internal extension ESTabBar {
     }
 
     func syncSelectionState() {
-        guard let tabBarItems = items else { return }
+        guard let tabBarItems = items,
+              let selectedItem,
+              let index = tabBarItems.firstIndex(of: selectedItem) else { return }
+        syncSelectionState(selectedIndex: index)
+    }
+
+    func syncSelectionState(selectedIndex index: Int) {
+        guard let tabBarItems = items, tabBarItems.indices.contains(index) else { return }
+        let selectedItem = tabBarItems[index]
         for (idx, item) in tabBarItems.enumerated() {
             guard let contentView = contentView(for: item, at: idx) else { continue }
             let selected = item == selectedItem
@@ -396,6 +404,7 @@ internal extension ESTabBar {
             }
         }
         syncGlassLayerDisplaysIfNeeded()
+        updateAccessibilityLabels(selectedIndex: index)
     }
 }
 
@@ -656,9 +665,15 @@ internal extension ESTabBar {
         return display
     }
 
-    private func glassDisplay(for item: UITabBarItem, at index: Int) -> ESTabBarItemContentView? {
+    private func glassDisplay(for item: UITabBarItem, at index: Int, selectedIndex: Int? = nil) -> ESTabBarItemContentView? {
         guard let pair = glassLayerDisplayPairs.first(where: { $0.itemIndex == index }) else { return nil }
-        return item == selectedItem ? pair.selectedDisplay : pair.normalDisplay
+        let isSelected: Bool
+        if let selectedIndex {
+            isSelected = index == selectedIndex
+        } else {
+            isSelected = item == selectedItem
+        }
+        return isSelected ? pair.selectedDisplay : pair.normalDisplay
     }
 
     @objc func highlightAction(_ sender: AnyObject?) {
@@ -730,17 +745,32 @@ internal extension ESTabBar {
     }
 
     func updateAccessibilityLabels() {
-        guard let tabBarItems = items else { return }
+        guard let tabBarItems = items,
+              let selectedItem,
+              let index = tabBarItems.firstIndex(of: selectedItem) else { return }
+        updateAccessibilityLabels(selectedIndex: index)
+    }
+
+    func updateAccessibilityLabels(selectedIndex index: Int) {
+        guard let tabBarItems = items, tabBarItems.indices.contains(index) else { return }
+        let selectedItem = tabBarItems[index]
         for (idx, item) in tabBarItems.enumerated() {
-            if isSystemGlassEffectActive, isCustomTabItem(item, at: idx), let display = glassDisplay(for: item, at: idx) {
-                configureAccessibility(for: display, item: item, at: idx, in: tabBarItems)
+            if isSystemGlassEffectActive, isCustomTabItem(item, at: idx),
+               let display = glassDisplay(for: item, at: idx, selectedIndex: index) {
+                configureAccessibility(for: display, item: item, at: idx, in: tabBarItems, selectedItem: selectedItem)
             } else if idx < containers.count {
-                configureAccessibility(for: containers[idx], item: item, at: idx, in: tabBarItems)
+                configureAccessibility(for: containers[idx], item: item, at: idx, in: tabBarItems, selectedItem: selectedItem)
             }
         }
     }
 
-    private func configureAccessibility(for view: UIView, item: UITabBarItem, at idx: Int, in tabBarItems: [UITabBarItem]) {
+    private func configureAccessibility(
+        for view: UIView,
+        item: UITabBarItem,
+        at idx: Int,
+        in tabBarItems: [UITabBarItem],
+        selectedItem: UITabBarItem
+    ) {
         view.isAccessibilityElement = true
         view.accessibilityIdentifier = item.accessibilityIdentifier
         var traits = item.accessibilityTraits

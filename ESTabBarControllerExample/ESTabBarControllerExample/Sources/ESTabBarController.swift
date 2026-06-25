@@ -54,42 +54,77 @@ open class ESTabBarController: UITabBarController, ESTabBarDelegate {
     
     /// Observer tabBarController's selectedViewController. change its selection when it will-set.
     open override var selectedViewController: UIViewController? {
-        willSet {
-            guard let newValue = newValue else {
-                // if newValue == nil ...
-                return
-            }
-            guard !ignoreNextSelection else {
+        get { super.selectedViewController }
+        set {
+            if ignoreNextSelection {
                 ignoreNextSelection = false
+                super.selectedViewController = newValue
                 return
             }
-            guard let tabBar = self.tabBar as? ESTabBar, let items = tabBar.items, let index = viewControllers?.firstIndex(of: newValue) else {
+            guard let newValue else {
+                super.selectedViewController = nil
                 return
             }
-            let value = (ESTabBarController.isShowingMore(self) && index > items.count - 1) ? items.count - 1 : index
+//            if delegate?.tabBarController?(self, shouldSelect: newValue) == false {
+//                revertTabBarVisualSelection()
+//                return
+//            }
+            super.selectedViewController = newValue
+            syncTabBarSelectionFromViewController(newValue, animated: false)
+        }
+    }
+
+    /// Observer tabBarController's selectedIndex. change its selection when it will-set.
+    open override var selectedIndex: Int {
+        get { super.selectedIndex }
+        set {
+            if newValue == selectedIndex {
+                return
+            }
+            if ignoreNextSelection {
+                ignoreNextSelection = false
+                super.selectedIndex = newValue
+                return
+            }
+            guard let tabBar = tabBar as? ESTabBar,
+                  let items = tabBar.items,
+                  let viewControllers,
+                  !viewControllers.isEmpty else {
+                super.selectedIndex = newValue
+                return
+            }
+            let value = (ESTabBarController.isShowingMore(self) && newValue > items.count - 1)
+                ? items.count - 1
+                : newValue
+            guard value >= 0, value < viewControllers.count,
+                  let item = tabBar.items?[value],
+                  tabBar.customDelegate?.tabBar(tabBar, shouldSelect: item) ?? true else {
+                revertTabBarVisualSelection()
+                return
+            }
+            super.selectedIndex = newValue
             tabBar.select(itemAtIndex: value, animated: false)
         }
     }
-    
-    /// Observer tabBarController's selectedIndex. change its selection when it will-set.
-    open override var selectedIndex: Int {
-        willSet {
-            guard !ignoreNextSelection else {
-                ignoreNextSelection = false
-                return
-            }
-            guard let tabBar = self.tabBar as? ESTabBar, let items = tabBar.items else {
-                return
-            }
-            let value = (ESTabBarController.isShowingMore(self) && newValue > items.count - 1) ? items.count - 1 : newValue
-            tabBar.select(itemAtIndex: value, animated: false)
-        }
+
+    private func syncTabBarSelectionFromViewController(_ viewController: UIViewController, animated: Bool) {
+        guard let tabBar = tabBar as? ESTabBar,
+              let items = tabBar.items,
+              let index = viewControllers?.firstIndex(of: viewController) else { return }
+        let value = (ESTabBarController.isShowingMore(self) && index > items.count - 1) ? items.count - 1 : index
+        tabBar.select(itemAtIndex: value, animated: animated)
+    }
+
+    private func revertTabBarVisualSelection() {
+        guard let tabBar = tabBar as? ESTabBar,
+              viewControllers?.indices.contains(selectedIndex) == true else { return }
+        tabBar.syncSelectionState(selectedIndex: selectedIndex)
     }
     
     /// Customize set tabBar use KVC.
     open override func viewDidLoad() {
         super.viewDidLoad()
-        let tabBar = { () -> ESTabBar in 
+        let tabBar = { () -> ESTabBar in
             let tabBar = ESTabBar()
             tabBar.delegate = self
             tabBar.customDelegate = self
@@ -99,43 +134,38 @@ open class ESTabBarController: UITabBarController, ESTabBarDelegate {
         self.setValue(tabBar, forKey: "tabBar")
     }
 
-    // MARK: - UITabBar delegate
-//    open func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
-//        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
-//            if delegate?.tabBarController?(self, shouldSelect: vc) == false {
-//                return false
-//            }
-//        }
-//        
-//        guard let estTabBar = tabBar as? ESTabBar else {
-//            return true
-//        }
-//        if #available(iOS 26.0, *), estTabBar.isSystemGlassEffectActive {
-//            if estTabBar.customDelegate?.tabBar(tabBar, shouldHijack: item) == true {
-//                estTabBar.customDelegate?.tabBar(tabBar, didHijack: item)
-//                if let idx = tabBar.items?.firstIndex(of: item) {
-//                    estTabBar.performGlassHijackFeedback(at: idx, animated: true)
-//                }
-//                return false
-//            }
-//        }
-//        return true
-//    }
-    
+    // MARK: - UITabBar / ESTabBar delegate
+
+    open func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
+        guard let idx = tabBar.items?.firstIndex(of: item),
+              let vc = viewControllers?[idx] else { return true }
+        if idx == selectedIndex {
+            return false
+        }
+        return delegate?.tabBarController?(self, shouldSelect: vc) ?? true
+    }
+
     open override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        guard let idx = tabBar.items?.firstIndex(of: item) else {
-            return;
+        guard let idx = tabBar.items?.firstIndex(of: item) else { return }
+        if idx == selectedIndex {
+            return
         }
         if idx == tabBar.items!.count - 1, ESTabBarController.isShowingMore(self) {
             ignoreNextSelection = true
             selectedViewController = moreNavigationController
-            return;
+            return
         }
-        if let vc = viewControllers?[idx] {
-            ignoreNextSelection = true
-            selectedIndex = idx
-            delegate?.tabBarController?(self, didSelect: vc)
+
+        guard let vc = viewControllers?[idx] else { return }
+
+        if delegate?.tabBarController?(self, shouldSelect: vc) == false {
+            revertTabBarVisualSelection()
+            return
         }
+
+        ignoreNextSelection = true
+        selectedIndex = idx
+        delegate?.tabBarController?(self, didSelect: vc)
     }
     
     open override func tabBar(_ tabBar: UITabBar, willBeginCustomizing items: [UITabBarItem]) {
@@ -148,14 +178,6 @@ open class ESTabBarController: UITabBarController, ESTabBarDelegate {
         if let tabBar = tabBar as? ESTabBar {
             tabBar.updateLayout()
         }
-    }
-    
-    // MARK: - ESTabBar delegate
-    internal func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
-        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
-            return delegate?.tabBarController?(self, shouldSelect: vc) ?? true
-        }
-        return true
     }
     
     internal func tabBar(_ tabBar: UITabBar, shouldHijack item: UITabBarItem) -> Bool {

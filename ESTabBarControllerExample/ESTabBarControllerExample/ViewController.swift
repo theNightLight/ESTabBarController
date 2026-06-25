@@ -8,9 +8,12 @@
 
 import UIKit
 
-public class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate,UITabBarControllerDelegate {
-    var originalSelectIndex: Int = 0
+public class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITabBarControllerDelegate, UIAdaptivePresentationControllerDelegate {
     @IBOutlet weak var tableView: UITableView!
+    private weak var previousSelectedViewController: UIViewController?
+    private var previousSelectedIndex: Int?
+    private var pendingDialogRestoreSelection: (() -> Void)?
+    private var pendingViewControllerSwap: (currentIndex: Int, photoIndex: Int)?
     
     public let sectionTitleArray = ["Basic", "Embed", "Animation", "Irregular", "Customize click", "Remind", "Lottie"]
     public let sectionSubtitleArray = ["基本", "嵌套", "动画", "不规则", "自定义点击", "提醒", "Lottie"]
@@ -28,6 +31,7 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             "ESTabBarController style with non-zero default index",
             "ESTabBarController style Mandatory Old Design",
             "ESTabBarController style with GlassEffect and Badge",
+            "UITabBarController tab style",
         ],
         [
             "ESTabBarController embeds the UINavigationController style",
@@ -73,6 +77,7 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
             "默认index非0的ESTabBarController样式",
             "ESTabBarController 强制使用旧版本UI",
             "ESTabBarController 玻璃效果 + Badge",
+            "UITabBarController tab 样式",
         ],
         [
             "UINavigationController内嵌UITabBarController样式",
@@ -188,10 +193,14 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
                 tabBarController.selectedIndex = 2
             case 10:
                 let tabBarController = ExampleProvider.mandatoryOldDesignStyle()
+                tabBarController.delegate = self
                 self.present(tabBarController, animated: true, completion: nil)
-                tabBarController.selectedIndex = 2
             case 11:
                 self.present(ExampleProvider.customGlassWithBadgeStyle(), animated: true, completion: nil)
+            case 12:
+                let tabBarController = ExampleProvider.systemTabStyle()
+                tabBarController.delegate = self
+                self.present(tabBarController, animated: true, completion: nil)
             default:
                 break
             }
@@ -263,32 +272,204 @@ public class ViewController: UIViewController, UITableViewDataSource, UITableVie
         
     }
     
-    
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
-  
-        if let tabBarItem = viewController.tabBarItem as? ESTabBarItem, tabBarItem.contentView.title == "Photo"{
-            showCustomMoreDialog(from: tabBarController)
+        guard isPhotoViewController(viewController) else {
+            previousSelectedViewController = viewController
+            previousSelectedIndex = tabBarController.viewControllers?.firstIndex(of: viewController)
+            return true
+        }
+
+        guard let photoIndex = tabBarController.viewControllers?.firstIndex(of: viewController) else {
             return false
         }
-        if let tabBarItem = viewController.tabBarItem, tabBarItem.title == "Photo"{
-            showCustomMoreDialog(from: tabBarController)
+
+        let currentIndex = tabBarController.selectedIndex
+        guard currentIndex != photoIndex,
+              tabBarController.viewControllers?.indices.contains(currentIndex) == true else {
             return false
         }
-        return true
+
+        previousSelectedViewController = tabBarController.selectedViewController
+        previousSelectedIndex = currentIndex
+
+        self.applyPhotoTabSwap(in: tabBarController, currentIndex: currentIndex, photoIndex: photoIndex)
+        self.showCustomMoreDialog(from: tabBarController) { [weak self, weak tabBarController] in
+            guard let self, let tabBarController else { return }
+            self.restorePhotoTabSwap(in: tabBarController)
+        }
+
+        return false
     }
-    
-    
-    func showCustomMoreDialog(from tabBarController: UITabBarController) {
-        let alert = UIAlertController(title: "更多功能", message: nil, preferredStyle: .actionSheet)
+
+    public func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        guard isPhotoViewController(viewController) else {
+            previousSelectedViewController = viewController
+            previousSelectedIndex = tabBarController.viewControllers?.firstIndex(of: viewController)
+            return
+        }
+    }
+
+    @available(iOS 18.0, *)
+    public func tabBarController(_ tabBarController: UITabBarController, shouldSelectTab tab: UITab) -> Bool {
+        guard tab.title == "Photo" else {
+            previousSelectedViewController = tabBarController.selectedViewController
+            previousSelectedIndex = tabBarController.tabs.firstIndex(of: tab) ?? tabBarController.selectedIndex
+            return true
+        }
+
+        guard let photoIndex = tabBarController.tabs.firstIndex(of: tab) else {
+            return false
+        }
+
+        let currentIndex = tabBarController.selectedIndex
+        guard currentIndex != photoIndex,
+              tabBarController.tabs.indices.contains(currentIndex) else {
+            return false
+        }
+
+        previousSelectedViewController = tabBarController.selectedViewController
+        previousSelectedIndex = currentIndex
         
-        let restoreSelection = { [weak tabBarController] in
-            guard tabBarController != nil else { return }
-            tabBarController?.selectedIndex = 3
+        self.applyPhotoTabSwap(in: tabBarController, currentIndex: currentIndex, photoIndex: photoIndex)
+        self.showCustomMoreDialog(from: tabBarController) { [weak self, weak tabBarController] in
+            guard let self, let tabBarController else { return }
+            self.restorePhotoTabSwap(in: tabBarController)
+        }
+//        DispatchQueue.main.async { [weak self, weak tabBarController] in
+//            guard let self, let tabBarController else { return }
+//            self.applyPhotoTabSwap(in: tabBarController, currentIndex: currentIndex, photoIndex: photoIndex)
+//            self.showCustomMoreDialog(from: tabBarController) { [weak self, weak tabBarController] in
+//                guard let self, let tabBarController else { return }
+//                self.restorePhotoTabSwap(in: tabBarController)
+//            }
+//        }
+
+        return false
+    }
+
+    private func isPhotoViewController(_ viewController: UIViewController) -> Bool {
+        if let tabBarItem = viewController.tabBarItem as? ESTabBarItem, tabBarItem.contentView.title == "Photo" {
+            return true
+        }
+        if viewController.tabBarItem?.title == "Photo" {
+            return true
+        }
+        return false
+    }
+
+    private func selectTabBarItemVisually(in tabBarController: UITabBarController, index: Int) {
+        guard let items = tabBarController.tabBar.items, items.indices.contains(index) else { return }
+        if let tabBar = tabBarController.tabBar as? ESTabBar {
+            tabBar.syncSelectionState(selectedIndex: index)
+        }
+    }
+
+    private func swapViewControllers(in tabBarController: UITabBarController, at firstIndex: Int, with secondIndex: Int) {
+        if var viewControllers = tabBarController.viewControllers,
+           viewControllers.indices.contains(firstIndex),
+           viewControllers.indices.contains(secondIndex) {
+            let firstViewController = viewControllers[firstIndex]
+            let secondViewController = viewControllers[secondIndex]
+            swapTabBarItems(between: firstViewController, and: secondViewController)
+            viewControllers.swapAt(firstIndex, secondIndex)
+            tabBarController.setViewControllers(viewControllers, animated: false)
+        }
+
+        if #available(iOS 18.0, *) {
+            var tabs = tabBarController.tabs
+            if tabs.indices.contains(firstIndex), tabs.indices.contains(secondIndex) {
+                let firstTab = tabs[firstIndex]
+                let secondTab = tabs[secondIndex]
+                swapUITabPresentation(between: firstTab, and: secondTab)
+                tabs.swapAt(firstIndex, secondIndex)
+                tabBarController.tabs = tabs
+            }
+        }
+    }
+
+    @available(iOS 18.0, *)
+    private func swapUITabPresentation(between firstTab: UITab, and secondTab: UITab) {
+        let firstTitle = firstTab.title
+        firstTab.title = secondTab.title
+        secondTab.title = firstTitle
+
+        let firstSubtitle = firstTab.subtitle
+        firstTab.subtitle = secondTab.subtitle
+        secondTab.subtitle = firstSubtitle
+
+        let firstImage = firstTab.image
+        firstTab.image = secondTab.image
+        secondTab.image = firstImage
+
+        let firstBadgeValue = firstTab.badgeValue
+        firstTab.badgeValue = secondTab.badgeValue
+        secondTab.badgeValue = firstBadgeValue
+
+        let firstViewController = firstTab.viewController
+        let secondViewController = secondTab.viewController
+        firstTab.setValue(secondViewController, forKey: "viewController")
+        secondTab.setValue(firstViewController, forKey: "viewController")
+    }
+
+    private func swapTabBarItems(between firstViewController: UIViewController, and secondViewController: UIViewController) {
+        let firstItem = firstViewController.tabBarItem
+        firstViewController.tabBarItem = secondViewController.tabBarItem
+        secondViewController.tabBarItem = firstItem
+    }
+
+    private func selectTabBarEntry(in tabBarController: UITabBarController, index: Int) {
+        if #available(iOS 18.0, *) {
+            let tabs = tabBarController.tabs
+            if tabs.indices.contains(index) {
+                tabBarController.selectedTab = tabs[index]
+            }
+        }
+        tabBarController.selectedIndex = index
+        selectTabBarItemVisually(in: tabBarController, index: index)
+    }
+
+    private func applyPhotoTabSwap(in tabBarController: UITabBarController, currentIndex: Int, photoIndex: Int) {
+        swapViewControllers(in: tabBarController, at: currentIndex, with: photoIndex)
+        pendingViewControllerSwap = (currentIndex, photoIndex)
+        selectTabBarEntry(in: tabBarController, index: photoIndex)
+    }
+
+    private func restorePhotoTabSwap(in tabBarController: UITabBarController) {
+        guard let swap = pendingViewControllerSwap else { return }
+        pendingViewControllerSwap = nil
+        swapViewControllers(in: tabBarController, at: swap.currentIndex, with: swap.photoIndex)
+        selectTabBarEntry(in: tabBarController, index: swap.currentIndex)
+        previousSelectedIndex = swap.currentIndex
+        previousSelectedViewController = tabBarController.selectedViewController
+    }
+
+    private func performPendingDialogRestoreSelection() {
+        let restoreSelection = pendingDialogRestoreSelection
+        pendingDialogRestoreSelection = nil
+        restoreSelection?()
+    }
+
+    public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        performPendingDialogRestoreSelection()
+    }
+
+    func showCustomMoreDialog(from tabBarController: UITabBarController, restoreSelection: @escaping () -> Void) {
+//        guard tabBarController.presentedViewController == nil else {
+//            restoreSelection()
+//            return
+//        }
+
+        pendingDialogRestoreSelection = restoreSelection
+        let alert = UIAlertController(title: "更多功能", message: nil, preferredStyle: .alert)
+        
+        let restoreSelection = { [weak self] in
+            self?.performPendingDialogRestoreSelection()
         }
         
         alert.addAction(UIAlertAction(title: "设置", style: .default) { _ in restoreSelection() })
         alert.addAction(UIAlertAction(title: "关于我们", style: .default) { _ in restoreSelection() })
         alert.addAction(UIAlertAction(title: "取消", style: .cancel) { _ in restoreSelection() })
+        
         
         if let popover = alert.popoverPresentationController {
             popover.sourceView = tabBarController.tabBar
